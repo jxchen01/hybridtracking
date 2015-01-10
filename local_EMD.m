@@ -32,8 +32,12 @@ se = strel('disk', candiRadius);
 for i=1:1:srcNum
     cellA=srcCellList{i}.ctl;
     lenA=srcCellList{i}.length;
+    try
     for j=1:1:lenA
         tmpSingle(cellA(j,1),cellA(j,2))=1;
+    end
+    catch
+        keyboard
     end
     tmpSingle=imdilate(tmpSingle,se);
     tmpAND = tmpSingle.*tarMat;

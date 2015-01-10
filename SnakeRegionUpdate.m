@@ -100,7 +100,7 @@ for ci=1:1:numContour
             phi=1;
         elseif(len<0.95*targetLength)
             phi=0.5;
-        elseif(len>1.1*targetLength)
+        elseif(len>1.25*targetLength)
             phi=-1;
         else % expected length [0.95L, 1.05L]
             phi=0;

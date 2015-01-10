@@ -13,6 +13,7 @@ matEachFrame = S.matEachFrame;
 numFrameAhead = 3;
 Options=struct();
 Options.Verbose=true;
+Options.Iterations=30;
 
 %numFrame = length(cellEachFrame);
 numFrame = 8;
@@ -70,9 +71,11 @@ for frameIdx = 2:1:numFrame
     % update
     [cellFrame, cMat]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
     ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim]);
+
+    DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
     
     matEachFrame{frameIdx}.Mat = cMat;
-    cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)=cellFrame(1,:);
+    cellEachFrame(1,frameIdx-1:1:frameIdx+1)=cellFrame(1,1:3);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

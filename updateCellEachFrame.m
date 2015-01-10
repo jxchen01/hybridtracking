@@ -14,8 +14,8 @@ for i=1:1:sig
     
     newCellFrame{i}=struct('length',newCellFrame{i}.length,'ctl',pp,'child',[],...
         'parent',pid,'candi',[],'inflow',min([cellEachFrame{1}{pid}.length,...
-        newCellFrame{i}.length]),'outflow',0,'relaxinCost',[],...
-        'relaxOutCost',[],'seg',newCellFrame{i}.seg);
+        newCellFrame{i}.length]),'outflow',0,'relaxinCost',0,...
+        'relaxOutCost',0,'seg',newCellFrame{i}.seg);
 end
 
 clear idx pp i
@@ -33,9 +33,9 @@ for i=1:1:numel(Ps)
     
     mf = min([Ps{i}.length, cellEachFrame{1}{pid}.length]);
     
-    tmp=struct('length',Ps{i}.length,'ctl',ctlList,'child',[],...
-        'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',[],...
-        'relaxOutCost',[],'seg',im);
+    tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
+        'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
+        'relaxOutCost',0,'seg',im);
     newCellFrame=cat(2,newCellFrame,tmp);
     
     cellEachFrame{1}{pid}.outflow=mf;
@@ -49,9 +49,6 @@ for i=1:1:numel(cellEachFrame{3})
     cellEachFrame{3}{i}.parent=[];
 end
 
-%%%% check below %%%%%
-keyboard
-%%%%%%%%%%%%%%%%%%%%%
 
 [srcCellList,tarCellList]=local_EMD(newCellFrame,cellEachFrame{3}, cMat, tarMat);
 cellEachFrame{2}=srcCellList;

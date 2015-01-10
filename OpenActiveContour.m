@@ -58,6 +58,9 @@ if(Options.Verbose)
     figure(2), imshow(I), hold on; myHandle=drawContours(P,0,[],0);
 end
 
+% prepare the barrier map
+BMap = processBMap(BMap);
+
 % Make the interal force matrix (smooth the contour)
 S=SnakeInternalForceMatrix2D(Options.nPoints,Options.Alpha,Options.Beta,Options.Gamma);
 
@@ -94,7 +97,7 @@ for i=1:Options.Iterations
 end
 
 if(nargout>1)
-     J=DrawSegmentedArea2D(P,I);
+     J=DrawSegmentedArea2D(P,I,1);
 end
 
 end
