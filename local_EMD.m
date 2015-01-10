@@ -319,7 +319,11 @@ for rx1=1:halfROIs:dimx
                         tarCellList{new_child(j)}.inflow = tarCellList{new_child(j)}.inflow + tmpFlow;
                     end
                     
-                    flowMat(sid,new_child(j))=tmpFlow;
+                    try
+                        flowMat(sid,new_child(j))=tmpFlow;
+                    catch
+                        keyboard
+                    end
                 end
             end
                 

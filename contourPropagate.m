@@ -1,7 +1,7 @@
 function newPs=contourPropagate(Ps,shrinkRate,sz)
 
 nPoints = 20;
-lengthCanSkip = 12;
+lengthCanSkip = 10;
 
 if(shrinkRate>lengthCanSkip)
     error('shrink too much');
@@ -21,11 +21,14 @@ for i=1:1:numel(Ps)
         continue;
     end
     
-    P=Ps{i}.pts;
+    P=Ps{i}.ctl;
     
+    try
     O(:,1)=interp(P(:,1),10,4);
     O(:,2)=interp(P(:,2),10,4);
-    
+    catch
+        keyboard
+    end
     
     % Calculate distance between points
     dis=[0;cumsum(sqrt(sum((O(2:end,:)-O(1:end-1,:)).^2,2)))];
@@ -41,35 +44,20 @@ for i=1:1:numel(Ps)
     K(:,1)=min(max(K(:,1),1),sz(1));
     K(:,2)=min(max(K(:,2),1),sz(2));
     
-    t=Ps{i}.thickness;
+    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
     %len = Ps{i}.length;
     %len = Ps{i}.targetLength ;
     
     if(isCloseToBoundary(K,sz(1),sz(2)))
-        if( Ps{i}.targetLength <0 )
-            len = -1;
-            cl = Ps{i}.copyLength;
-        else
-            len = -1;
-            cl = Ps{i}.copyLength;
-        end
+        len = -1;
     else
-        if(Ps{i}.targetLength<0)
-            if(Ps{i}.copyLength==0)
-                len = Ps{i}.length;
-                cl = Ps{i}.length;
-            else
-                len = Ps{i}.copyLength;
-                cl = len;
-            end
-        else
-            len = Ps{i}.targetLength;
-            cl = Ps{i}.copyLength;
-        end
+        len = Ps{i}.length;
     end
     
-    Ps{i}=struct('pts',K,'thickness',t,'length',0,'targetLength',len,'copyLength',cl,...
+    Ps{i}=struct('pts',K,'thickness',t,'length',0,'targetLength',len,...
     'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
+
+    clear O len K P dis t
 end
 
 if(~isempty(skipIdx))

@@ -1,4 +1,4 @@
-function cellList = ExtractCells(bwLabel,im,shrinkRate)
+function ctl = sortOneCellPixel(im)
 
 im(im>0)=1;
 [xdim,ydim]=size(im);
@@ -7,18 +7,14 @@ nbr=[1,1;1,0;1,-1;0,1;0,-1;-1,1;-1,0;-1,-1];
 epImg = bwmorph(im, 'endpoint');
 labelImg=epImg+im;
 cellNum = nnz(epImg)/2;
-if(mod(nnz(epImg),2)==1)
+if(nnz(epImg)~=2)
     disp('error in number of endpoints');
     keyboard
 end
 clear epImg
 
 ep=find(labelImg==2);
-currentCellNum=0;
-cellList=cell(1,cellNum);
 
-while(~isempty(ep))
-    currentCellNum=currentCellNum+1;
     
     % extract a new end point
     [xt,yt]=ind2sub([xdim ydim],ep(1));
@@ -64,27 +60,6 @@ while(~isempty(ep))
         disp('only one endpoint is removed in this iteration');
         keyboard
     end
+    ctl=zeros(pixNum,2);
+    ctl(:,:)=tmpPixInd(1:pixNum,:);
     
-    pts=zeros(pixNum,2);
-    pts(:,:)=tmpPixInd(1:pixNum,:);
-    
-    seg_region = (bwLabel==bwLabel(pts(1,1),pts(1,2)));
-    %thickness = cellThickness(tmpPixInd(1:1:pixNum,:),...
-    %    seg_region,xdim,ydim);
-    
-    cellList{currentCellNum}=struct('length',pixNum,'ctl',pts,'child',[],...
-        'parent',[],'candi',[],'inflow',0,'outflow',0,'relaxinCost',[],...
-        'relaxOutCost',[],'seg',seg_region);
-    
-    if(~isCloseToBoundary(pts,xdim,ydim))
-        cellList{currentCellNum}.copyLength = pixNum;
-    end
-
-    ep=find(labelImg==2); 
-end
-
-if(currentCellNum~=cellNum)
-    disp('error in the number of detected cells');
-    disp([currentCellNum,cellNum]);
-    keyboard
-end

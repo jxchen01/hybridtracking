@@ -1,4 +1,4 @@
-function [P,J]=OpenActiveContour(I,P,Options)
+function [P,J]=OpenActiveContour(I,P,BMap,Options)
 
 % [O,J]=OpenActiveContour(I,P,Options)
 %  
@@ -15,7 +15,7 @@ function [P,J]=OpenActiveContour(I,P,Options)
 %  Option.Verbose : If true show important images, default false
 %  Options.nPoints : Number of contour points, default 20
 %  Options.Gamma : Time step, default 1
-%  Options.Iterations : Number of iterations, default 100
+%  Options.Iterations : Number of iterations, default 10
 %
 % options (internal force)
 %  Options.Alpha : Membrame energy  (first order), default 0.2
@@ -29,8 +29,8 @@ function [P,J]=OpenActiveContour(I,P,Options)
 % Modified by Jianxu Chen (University of Notre Dame) at Jan 2015
 
 % Process inputs
-defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
-    'Gamma',1,'Kappa',0.2,'Iterations',100);
+defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.1,'Delta',1,...
+    'Gamma',1,'Kappa',0.2,'Iterations',10);
 
 if(~exist('Options','var')), 
     Options=defaultoptions; 
@@ -74,7 +74,7 @@ Fext=GVFOptimizeImageForces2D(Fext, 0.1, 5, 1.0);
 
 for i=1:Options.Iterations    
     %P=SnakeMoveIteration2D(S,P,Fext,Options.Gamma,Options.Kappa,Options.Delta,thickness,targetLength);
-    P=SnakeRegionUpdate(I,S,P,Fext,zeros(size(I)),Options.Gamma,Options.Kappa,Options.Delta);
+    P=SnakeRegionUpdate(I,S,P,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta);
     
     %if(mod(i,5)==0)
         P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
