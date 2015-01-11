@@ -51,7 +51,7 @@ for i=2:1:numFrame
 end
 
 %%%% main loop %%%
-for frameIdx = 2:1:numFrame
+for frameIdx = 2:1:numFrame-numFrameAhead
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead),...
         matEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead));
@@ -79,6 +79,7 @@ for frameIdx = 2:1:numFrame
     matEachFrame{frameIdx}.Mat = cMat;
     cellEachFrame(1,frameIdx-1:1:frameIdx+1)=cellFrame(1,1:3);
 end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%% high-level association (globally min-cost flow) %%%%%%%%%%%%%
