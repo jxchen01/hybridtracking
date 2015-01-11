@@ -1,4 +1,6 @@
-function im1=pruneLine(im1)
+function [im1,removedFlag]=pruneLine(im1)
+
+removedFlag=false;
 
 %%%%% check if pruning is necessary
 bp=bwmorph(im1,'branchpoints');
@@ -7,7 +9,7 @@ if(nnz(bp)==0)
 end
 
 %%%%% start pruning
-MinBranch=5;
+MinBranch=6;
 
 CopyImg=im1;  % make a copy for debug
 im1(im1>0)=1;
@@ -108,9 +110,11 @@ while(~isempty(cp))
 end
 
 cc=bwconncomp(im1);
-if(cc.NumObjects~=1)
+if(cc.NumObjects>1)
     disp('cell is broken');
     keyboard
+elseif(cc.NumObjects==0)
+    removedFlag=true;
 end
 
 end

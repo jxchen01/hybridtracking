@@ -6,6 +6,8 @@ disp('Program Starts...');
 
 sq=0;
 RawType='.png';
+
+%%%%% load segmentation results %%%%%%
 S=load(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',num2str(sq),'/seg.mat']);
 cellEachFrame = S.cellEachFrame;
 matEachFrame = S.matEachFrame;
@@ -16,8 +18,8 @@ Options=struct();
 Options.Verbose=true;
 Options.Iterations=30;
 
-%numFrame = length(cellEachFrame);
-numFrame = 30;
+numFrame = length(cellEachFrame);
+%numFrame = 30;
 
 % load manual segmentation of first frame
 BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq'...
@@ -64,14 +66,11 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     % contour evolution
     I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
         num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
-    newPs=OpenActiveContour(I,Ps,BMap,Options);
+    [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);
     
-%     % merge the evolved contours with confirmed cells
-%     newCellFrame = ConvertContourToCell(newPs, newCellFrame,propagatedIdx,[xdim,ydim]);
-  
     % update
     [cellFrame, cMat]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
-    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim]);
+    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX);
 
     DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
     

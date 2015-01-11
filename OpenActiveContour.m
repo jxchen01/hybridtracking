@@ -1,4 +1,4 @@
-function P=OpenActiveContour(I,P,BMap,Options)
+function [P, divisionIDX]=OpenActiveContour(I,P,BMap0,Options)
 
 % [O,J]=OpenActiveContour(I,P,Options)
 %  
@@ -29,7 +29,7 @@ function P=OpenActiveContour(I,P,BMap,Options)
 % Modified by Jianxu Chen (University of Notre Dame) at Jan 2015
 
 % Process inputs
-defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.1,'Delta',1,...
+defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
     'Gamma',1,'Kappa',0.2,'Iterations',10);
 
 if(~exist('Options','var')), 
@@ -59,7 +59,7 @@ if(Options.Verbose)
 end
 
 % prepare the barrier map
-BMap = processBMap(BMap);
+BMap = processBMap(BMap0);
 
 % Make the interal force matrix (smooth the contour)
 S=SnakeInternalForceMatrix2D(Options.nPoints,Options.Alpha,Options.Beta,Options.Gamma);
@@ -96,6 +96,56 @@ for i=1:Options.Iterations
     end
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check cell division
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+divisionIDX = checkDivision(P,I);
+if(~isempty(divisionIDX))
+    disp('division found!');
+    numNew = numel(divisionIDX);
+    Pnew = cell(1,numNew*2);
+    for i=1:1:numNew
+        cid=divisionIDX(i);
+        pp = P{cid}.pts;
+        tarLen = 0.45*P{cid}.targetLength;
+        p1 = pp(1:1:floor(0.3*Options.nPoints),:);
+        p2 = pp(ceil(0.7*Options.nPoints):1:end,:);
+        Pnew{2*i-1}=struct('pts',p1,'thickness',P{cid}.thickness,'length',0,...
+        'targetLength',tarLen,'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
+        Pnew{2*i}=struct('pts',p2,'thickness',P{cid}.thickness,'length',0,...
+        'targetLength',tarLen,'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
+    end
+    Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
+    Pnew = cellInfoUpdate(Pnew,I);
+    if(Options.Verbose)
+        figure(2), imshow(I), hold on; myHandle=drawContours(Pnew,0,[],0);
+    end
+
+    % update BMap
+    J=DrawSegmentedArea2D(P,I,1);
+    BMap1 = J | BMap0;
+    BMap = processBMap(BMap1);
+    
+    for i=1:Options.Iterations
+        Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta);
+        Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
+        Pnew = cellInfoUpdate(Pnew,I);
+        if(Options.Verbose)
+            myHandle=drawContours(Pnew,i/Options.Iterations,myHandle,i);
+        end
+    end
+    
+    %%% merge divided contours back into P
+    for i=1:1:numNew
+        cid=divisionIDX(i);
+        P{cid}=Pnew{2*i-1};
+        P=cat(2,P,Pnew{2*i});
+    end
+end
+
+    
+    
 %if(nargout>1)
 %     J=DrawSegmentedArea2D(P,I,1);
 %end

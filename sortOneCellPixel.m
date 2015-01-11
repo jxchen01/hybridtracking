@@ -6,7 +6,7 @@ nbr=[1,1;1,0;1,-1;0,1;0,-1;-1,1;-1,0;-1,-1];
 
 epImg = bwmorph(im, 'endpoint');
 labelImg=epImg+im;
-cellNum = nnz(epImg)/2;
+
 if(nnz(epImg)~=2)
     disp('error in number of endpoints');
     keyboard
