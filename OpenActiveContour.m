@@ -1,4 +1,4 @@
-function [P,J]=OpenActiveContour(I,P,BMap,Options)
+function P=OpenActiveContour(I,P,BMap,Options)
 
 % [O,J]=OpenActiveContour(I,P,Options)
 %  
@@ -96,9 +96,9 @@ for i=1:Options.Iterations
     end
 end
 
-if(nargout>1)
-     J=DrawSegmentedArea2D(P,I,1);
-end
+%if(nargout>1)
+%     J=DrawSegmentedArea2D(P,I,1);
+%end
 
 end
 

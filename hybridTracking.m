@@ -63,7 +63,7 @@ for frameIdx = 2:1:numFrame
     % contour evolution
     I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
         num2str(sq),'/raw/img0',num2str(100+frameIdx),'.jpg']);
-    [newPs,J]=OpenActiveContour(I,Ps,BMap,Options);
+    newPs=OpenActiveContour(I,Ps,BMap,Options);
     
 %     % merge the evolved contours with confirmed cells
 %     newCellFrame = ConvertContourToCell(newPs, newCellFrame,propagatedIdx,[xdim,ydim]);
@@ -73,6 +73,8 @@ for frameIdx = 2:1:numFrame
     ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim]);
 
     DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
+    
+    saveas(gcf,['./track/img0',num2str(frameIdx+100),'.png'],'png');
     
     matEachFrame{frameIdx}.Mat = cMat;
     cellEachFrame(1,frameIdx-1:1:frameIdx+1)=cellFrame(1,1:3);
