@@ -4,7 +4,8 @@
 clc
 disp('Program Starts...');
 
-sq=1;
+sq=0;
+RawType='.png';
 S=load(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',num2str(sq),'/seg.mat']);
 cellEachFrame = S.cellEachFrame;
 matEachFrame = S.matEachFrame;
@@ -16,7 +17,7 @@ Options.Verbose=true;
 Options.Iterations=30;
 
 %numFrame = length(cellEachFrame);
-numFrame = 8;
+numFrame = 30;
 
 % load manual segmentation of first frame
 BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq'...
@@ -62,7 +63,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     
     % contour evolution
     I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-        num2str(sq),'/raw/img0',num2str(100+frameIdx),'.jpg']);
+        num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
     newPs=OpenActiveContour(I,Ps,BMap,Options);
     
 %     % merge the evolved contours with confirmed cells

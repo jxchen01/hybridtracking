@@ -25,6 +25,11 @@ for i=1:1:numel(Ps)
     
     % Calculate distance between points
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
+    
+    if(dis(end)<2*shrinkRate)
+        skipIdx = cat(1,skipIdx,i);
+        continue;
+    end
 
     % Resample to make uniform points
     K=zeros(nPoints,2);

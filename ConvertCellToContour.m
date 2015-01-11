@@ -31,6 +31,6 @@ for i=1:1:numel(cFrame);
 end
 
 idxList = setdiff(1:1:numel(pFrame), propagateIdx);
-Ps = contourPropagate(pFrame(idxList),6,sz);
+Ps = contourPropagate(pFrame(idxList),10,sz);
 
 
