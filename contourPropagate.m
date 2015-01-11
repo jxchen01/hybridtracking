@@ -1,7 +1,7 @@
 function newPs=contourPropagate(Ps,shrinkRate,sz)
 
 nPoints = 20;
-lengthCanSkip = 10;
+lengthCanSkip = 12;
 
 if(shrinkRate>lengthCanSkip)
     error('shrink too much');
@@ -51,7 +51,7 @@ for i=1:1:numel(Ps)
     if(isCloseToBoundary(K,sz(1),sz(2)))
         len = -1;
     else
-        len = Ps{i}.length;
+        len = dis(end);
     end
     
     Ps{i}=struct('pts',K,'thickness',t,'length',0,'targetLength',len,...

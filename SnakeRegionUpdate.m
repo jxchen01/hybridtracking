@@ -17,7 +17,7 @@ function Ps=SnakeRegionUpdate(I,B,Ps,Fedge,BMap,gamma,kappa,delta)
 %
 % Function is written by Jianxu Chen (University of Notre dame) on Jan 2015
 % modified based on a script from D.Kroon University of Twente 
-ww=5;
+ww=10;
 
 [xdim,ydim]=size(I);
 
@@ -36,7 +36,7 @@ dphi=zeros(nPoints,2);
 rp=zeros(nPoints,2);
 Fext=zeros(nPoints,2);
 for ci=1:1:numContour
-%     if(ci==20) % 4
+%     if(ci==27) % 4
 %         keyboard;
 %     end
     % retrieve info of current cell
@@ -53,6 +53,12 @@ for ci=1:1:numContour
     %%%%% prepare global repelling force %%%%%%%
     id=setdiff(1:1:numContour+1,ci);
     rp_all=sum(RepelForce(:,:,id),3);
+    
+    rp_Fx=ImageDerivatives2D(rp_all,6,'x');
+    rp_Fy=ImageDerivatives2D(rp_all,6,'y');
+    rp_Fext(:,:,1)=-rp_Fx*2*6^2;
+    rp_Fext(:,:,2)=-rp_Fy*2*6^2;
+
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % forces exerted in normal direction of cell body
@@ -84,10 +90,6 @@ for ci=1:1:numContour
     pp(:,1)=min(max(pp(:,1),1),xdim);
     pp(:,2)=min(max(pp(:,2),1),ydim);
     
-    % repelling force 
-    rp_head=interp2(rp_all,pp(:,2),pp(:,1));
-    rp_head(isnan(rp_head))=0;
-    
     % image force based on chan-vese model
     cv_head = interp2(dphi_all,pp(:,2),pp(:,1));
     cv_head(isnan(cv_head))=0;
@@ -100,7 +102,7 @@ for ci=1:1:numContour
             phi=1;
         elseif(len<0.95*targetLength)
             phi=0.5;
-        elseif(len>1.25*targetLength)
+        elseif(len>1.2*targetLength)
             phi=-1;
         else % expected length [0.95L, 1.05L]
             phi=0;
@@ -116,7 +118,19 @@ for ci=1:1:numContour
     tmp(1,:)=Fedge(round(pp(2,1)),round(pp(2,2)),:);
     fe_head(2)=dot(tmp,nn(2,:)); 
     
+    % repelling force 
+    rp_head=interp2(rp_all,pp(:,2),pp(:,1));
+    rp_head(isnan(rp_head))=0;
+
+    tmp(1,:)=rp_Fext(round(pp(1,1)), round(pp(1,2)),:);
+    tmp = tmp./(1e-8 + norm(tmp));
+    rp_head(1)=abs(dot(tmp,nn(1,:))) * rp_head(1);
     
+    tmp(1,:)=rp_Fext(round(pp(2,1)), round(pp(2,2)),:);
+    tmp = tmp./(1e-8 + norm(tmp));
+    rp_head(2)=abs(dot(tmp,nn(2,:))) * rp_head(2);
+    
+    clear tmp
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % normalize the image force along the contour
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -142,6 +156,7 @@ for ci=1:1:numContour
     
     % calculate the normalized image force in tangential direction
     cv_head=cv_head./cvMax;
+    %cv_head = cv_head./max(cv_head);
     
     % combine repelling force and image force
     ff=-(kappa.*rp_head+cv_head) + ww.*fe_head;
