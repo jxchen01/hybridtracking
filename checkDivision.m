@@ -10,10 +10,10 @@ for i=1:1:numel(Ps)
     
     t=interp2(I,P(:,2),P(:,1));
     
-    y = smooth(x,t,0.2,'rloess');
+    y = smooth(x,t,0.2,'loess');
 
     [vmin,pos]=min(y);
-    if(pos>0.4*len && pos<0.6*len && (min([1,max(y)])/vmin)>2)
+    if(pos>0.4*len && pos<0.6*len && (max(t))/vmin>2.25)
         divisionIDX = cat(2,divisionIDX,i);
     end
             

@@ -51,6 +51,10 @@ else
     I=mat2gray(I);
 end
 
+% Make the interal force matrix (smooth the contour)
+S=SnakeInternalForceMatrix2D(Options.nPoints,Options.Alpha,Options.Beta,Options.Gamma);
+
+
 % Make an uniform sampled contour description
 P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
 P=cellInfoUpdate(P,I);
@@ -60,9 +64,6 @@ end
 
 % prepare the barrier map
 BMap = processBMap(BMap0);
-
-% Make the interal force matrix (smooth the contour)
-S=SnakeInternalForceMatrix2D(Options.nPoints,Options.Alpha,Options.Beta,Options.Gamma);
 
 % Transform the Image into an External Energy Image
 Eext = ExternalForceImage2D(I,0.04, 2, 0.01 ,6);
@@ -97,6 +98,7 @@ for i=1:Options.Iterations
 end
 
 hold off
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check cell division
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,6 +106,7 @@ hold off
 divisionIDX = checkDivision(P,I);
 if(~isempty(divisionIDX))
     disp('division found!');
+    keyboard
     numNew = numel(divisionIDX);
     Pnew = cell(1,numNew*2);
     for i=1:1:numNew

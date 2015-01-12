@@ -72,6 +72,10 @@ for frameIdx = 2:1:numFrame-numFrameAhead
         newPs=[]; divisionIDX=[];
     end
     
+    if(frameIdx==24)
+        keyboard
+    end
+    
     % update
     [cellFrame, cMat]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
     ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX);

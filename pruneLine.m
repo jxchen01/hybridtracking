@@ -9,7 +9,7 @@ if(nnz(bp)==0)
 end
 
 %%%%% start pruning
-MinBranch=6;
+MinBranch=7;
 
 CopyImg=im1;  % make a copy for debug
 im1(im1>0)=1;
