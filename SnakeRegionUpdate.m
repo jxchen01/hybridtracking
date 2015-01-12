@@ -36,7 +36,7 @@ dphi=zeros(nPoints,2);
 rp=zeros(nPoints,2);
 Fext=zeros(nPoints,2);
 for ci=1:1:numContour
-%     if(ci==12) % 4
+%     if(ci==4)  
 %         keyboard;
 %     end
     % retrieve info of current cell

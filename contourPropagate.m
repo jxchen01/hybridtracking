@@ -1,4 +1,4 @@
-function newPs=contourPropagate(Ps,shrinkRate,sz)
+function [newPs, skipIdx]=contourPropagate(Ps,shrinkRate,sz)
 
 nPoints = 20;
 lengthCanSkip = 12;

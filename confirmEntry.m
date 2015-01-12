@@ -10,21 +10,28 @@ if(isempty(cid))
     return
 end
 
-frameID = floor(cid);
-cellID = uint16((cid - frameID)*1000);
-if(cellID==0)
-    frameID = 2;
-    cellID = uint16(cid);
-else
-    frameID = frameID-frameIdxBase;
+totalLen=0;
+
+for kk=1:1:numel(cid)
+    
+    frameID = floor(cid(kk));
+    cellID = uint16((cid(kk) - frameID)*1000);
+    if(cellID==0)
+        frameID = 2;
+        cellID = uint16(cid(kk));
+    else
+        frameID = frameID-frameIdxBase;
+    end
+    
+    if(frameID>numFrame)
+        return;
+    end
+    
+    totalLen = totalLen + cellEachFrame{frameID}{cellID}.length;
 end
 
-if(frameID>numFrame)
-    return;
-end
-
-if(abs(cellEachFrame{1}{idx}.length - cellEachFrame{frameID}{cellID}.length)...
-        <max([5,0.15*cellEachFrame{frameID}{cellID}.length]) )
+if(abs(cellEachFrame{1}{idx}.length - totalLen)<max([5,0.15*totalLen]) )
     flag=true;
 end
+
 

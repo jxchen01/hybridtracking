@@ -29,7 +29,7 @@ function [P, divisionIDX]=OpenActiveContour(I,P,BMap0,Options)
 % Modified by Jianxu Chen (University of Notre Dame) at Jan 2015
 
 % Process inputs
-defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
+defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.1,'Delta',1,...
     'Gamma',1,'Kappa',0.2,'Iterations',10);
 
 if(~exist('Options','var')), 
@@ -96,6 +96,7 @@ for i=1:Options.Iterations
     end
 end
 
+hold off
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check cell division
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -118,14 +119,20 @@ if(~isempty(divisionIDX))
     end
     Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
     Pnew = cellInfoUpdate(Pnew,I);
-    if(Options.Verbose)
-        figure(2), imshow(I), hold on; myHandle=drawContours(Pnew,0,[],0);
-    end
 
     % update BMap
     J=DrawSegmentedArea2D(P,I,1);
     BMap1 = J | BMap0;
+    for i=1:1:numNew
+        BMap1(P{divisionIDX(i)}.region>0)=0;
+    end
+    BMap1 = bwareaopen(BMap1,10);
+    
     BMap = processBMap(BMap1);
+    
+    if(Options.Verbose)
+         figure(2), imshow(I), hold on; myHandle=drawContours(Pnew,0,myHandle,0);
+    end
     
     for i=1:Options.Iterations
         Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta);

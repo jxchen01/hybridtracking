@@ -63,10 +63,14 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     % (3) contours needs to evolve
     [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,[xdim,ydim]);
     
-    % contour evolution
-    I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-        num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
-    [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);
+    if(numel(Ps)>0)
+        % contour evolution
+        I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
+            num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
+        [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);
+    else
+        newPs=[]; divisionIDX=[];
+    end
     
     % update
     [cellFrame, cMat]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
