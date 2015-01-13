@@ -1,6 +1,12 @@
 function [im1,removedFlag]=pruneLine(im1)
 
+MinBranch=7;
 removedFlag=false;
+
+if(nnz(im1)<MinBranch)
+    removedFlag=true;
+    return
+end
 
 %%%%% check if pruning is necessary
 bp=bwmorph(im1,'branchpoints');
@@ -9,8 +15,6 @@ if(nnz(bp)==0)
 end
 
 %%%%% start pruning
-MinBranch=7;
-
 CopyImg=im1;  % make a copy for debug
 im1(im1>0)=1;
 [xdim,ydim]=size(im1);

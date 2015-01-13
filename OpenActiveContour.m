@@ -29,7 +29,7 @@ function [P, divisionIDX]=OpenActiveContour(I,P,BMap0,Options)
 % Modified by Jianxu Chen (University of Notre Dame) at Jan 2015
 
 % Process inputs
-defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.1,'Delta',1,...
+defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
     'Gamma',1,'Kappa',0.2,'Iterations',10);
 
 if(~exist('Options','var')), 

@@ -19,7 +19,7 @@ for i=1:1:numel(cFrame);
     else
         pidx = cFrame{i}.parent;
         if(numel(pidx)==1  && abs(pFrame{pidx}.length - ...
-                cFrame{i}.length)< max(3,0.075*pFrame{pidx}.length))
+                cFrame{i}.length)<= max(4,0.08*pFrame{pidx}.length))
             % confirmed good segmentation
             newCellFrame = cat(2, newCellFrame, cFrame{i});
             propagateIdx = cat(2,propagateIdx, pidx);

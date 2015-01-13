@@ -63,6 +63,11 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     % (3) contours needs to evolve
     [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,[xdim,ydim]);
     
+      if(frameIdx==7)
+        keyboard
+      end
+    
+    
     if(numel(Ps)>0)
         % contour evolution
         I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
@@ -70,10 +75,6 @@ for frameIdx = 2:1:numFrame-numFrameAhead
         [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);
     else
         newPs=[]; divisionIDX=[];
-    end
-    
-    if(frameIdx==24)
-        keyboard
     end
     
     % update

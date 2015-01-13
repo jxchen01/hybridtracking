@@ -34,6 +34,22 @@ numProp = numel(propagateIdx);
 for i=1:1:numProp
     % extract the centerline of region
     im=Ps{i}.region;
+    
+    %%% add two heads %%%
+    tmpHead=zeros(sz);
+    pts = Ps{i}.pts;
+    x1=round(pts(1,1));y1=round(pts(1,2));
+    if(x1<1), x1=1; elseif(x1>sz(1)), x1=sz(1); end
+    if(y1<1), y1=1; elseif(y1>sz(2)), y1=sz(2); end
+    tmpHead(x1,y1)=1;
+    x2=round(pts(end,1));y2=round(pts(end,2));
+    if(x2<1), x2=1; elseif(x2>sz(1)), x2=sz(1); end
+    if(y2<1), y2=1; elseif(y2>sz(2)), y2=sz(2); end
+    tmpHead(x2,y2)=1;
+    
+    se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
+    im = im | imdilate(tmpHead,se);
+    
     [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf));
     
     if(removedFlag)
