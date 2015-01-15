@@ -1,4 +1,4 @@
-function [Ps, newCellFrame, BMap, idxList]=ConvertCellToContour(cellEachFrame,sz)
+function [Ps, newCellFrame, BMap, idxList]=ConvertCellToContour(cellEachFrame,sz, Options)
 
 cFrame = cellEachFrame{2};
 pFrame = cellEachFrame{1};
@@ -11,7 +11,7 @@ BMap = zeros(sz);
 for i=1:1:numel(cFrame);
     
     if(isempty(cFrame{i}.parent)) 
-        if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2)) && confirmEntry(cellEachFrame(1,2:1:end),i))
+        if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2), Options.BoundThresh) && confirmEntry(cellEachFrame(1,2:1:end),i))
             % confirmed entering cell
             newCellFrame = cat(2,newCellFrame, cFrame{i});
             BMap = BMap | cFrame{i}.seg;
@@ -31,7 +31,7 @@ for i=1:1:numel(cFrame);
 end
 
 idxList = setdiff(1:1:numel(pFrame), propagateIdx);
-[Ps, skipIdx] = contourPropagate(pFrame(idxList),10,sz);
+[Ps, skipIdx] = contourPropagate(pFrame(idxList),sz, Options);
 if(~isempty(skipIdx))
     idxList = setdiff( idxList, idxList(skipIdx));
 end

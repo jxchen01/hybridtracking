@@ -1,4 +1,4 @@
-function cellList = ExtractCells(bwLabel,im,shrinkRate)
+function cellList = ExtractCells(bwLabel,im,Options)
 
 im(im>0)=1;
 [xdim,ydim]=size(im);
@@ -76,7 +76,7 @@ while(~isempty(ep))
         'parent',[],'candi',[],'inflow',0,'outflow',0,'relaxinCost',0,...
         'relaxOutCost',0,'seg',seg_region);
     
-    if(~isCloseToBoundary(pts,xdim,ydim))
+    if(~isCloseToBoundary(pts,xdim,ydim, Options.BoundThresh))
         cellList{currentCellNum}.copyLength = pixNum;
     end
 

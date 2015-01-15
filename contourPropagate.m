@@ -1,16 +1,9 @@
-function [newPs, skipIdx]=contourPropagate(Ps,shrinkRate,sz)
+function [newPs, skipIdx]=contourPropagate(Ps,sz, Options)
 
-nPoints = 20;
-lengthCanSkip = 12;
+shrinkRate = Options.ShrinkPixelNum;
+nPoints = Options.nPoints;
+lengthCanSkip = Options.lengthCanSkip;
 
-if(shrinkRate>lengthCanSkip)
-    error('shrink too much');
-end
-% if(shrinkRate>1 || shrinkRate<0)
-%     error('incorrect shrink rate');
-% elseif(shrinkRate>0.5)
-%     shrinkRate = 1-shrinkRate;
-% end
     
 skipIdx=[];
 
@@ -46,7 +39,7 @@ for i=1:1:numel(Ps)
     %len = Ps{i}.length;
     %len = Ps{i}.targetLength ;
     
-    if(isCloseToBoundary(K,sz(1),sz(2)))
+    if(isCloseToBoundary(K,sz(1),sz(2), Options.BoundThresh))
         len = -1;
     else
         len = dis(end);

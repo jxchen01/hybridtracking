@@ -1,14 +1,13 @@
-function [srcCellList,tarCellList]=local_EMD(srcCellList, tarCellList, srcMat, tarMat)
+function [srcCellList,tarCellList]=local_EMD(srcCellList, tarCellList, srcMat, tarMat, Options)
 
 %%%%%%% parameters %%%%%%%
-halfROIs = 200;
-BoundThreshold = 3;
-divThresh=0.0001;
-candiRadius=10;
-bodyRatio=0.75;
-options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
-    'off','LargeScale', 'off', 'Simplex', 'on');
-%options = optimset('Display', 'off', 'Diagnostics','off','LargeScale', 'off');
+halfROIs = Options.halfROIs;
+BoundThreshold = Options.BoundThresh;
+candiRadius=Options.candiRadius;
+bodyRatio=Options.bodyRatio;
+%options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
+%    'off','LargeScale', 'off', 'Simplex', 'on');
+options = optimset('Display', 'off', 'Diagnostics','off');
 
 % initialization
 srcNum = length(srcCellList);
@@ -63,7 +62,7 @@ for i=1:1:srcNum
         
         lenA = srcCellList{sid}.length; cellA = srcCellList{sid}.ctl;
         lenB = tarCellList{tid}.length; cellB = tarCellList{tid}.ctl;
-        tmpD = ComputeDist(cellA,lenA, cellB,lenB, divThresh,0);
+        tmpD = ComputeDist(cellA,lenA, cellB,lenB,0);
         
         if(tmpD<500)
             distMat(sid,tid)=tmpD;

@@ -1,6 +1,6 @@
-function flag=isCloseToBoundary(P,dimx,dimy)
+function flag=isCloseToBoundary(P,dimx,dimy,bufferSize)
 
-bufferSize = 4;
+%bufferSize = 4;
 flag = false;
 
 if( any(P([1,end],1) > dimx - bufferSize) || any(P([1,end],1)<=bufferSize) )

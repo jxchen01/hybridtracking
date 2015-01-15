@@ -1,7 +1,7 @@
-function dist=ComputeDist(cellA,lenA, cellB,lenB, divThresh,debug)
+function dist=ComputeDist(cellA,lenA, cellB,lenB,debug)
 distThresh=30; % caution: not divThresh
 %distOffset=0.01;
-coeff=(pi/2-pi/25)/(1-divThresh);
+%coeff=(pi/2-pi/25)/(1-divThresh);
 
 hxA=cellA(1,1); hyA=cellA(1,2);
 txA=cellA(lenA,1); tyA=cellA(lenA,2);

@@ -30,7 +30,7 @@ function [P, divisionIDX]=OpenActiveContour(I,P,BMap0,Options)
 
 % Process inputs
 defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
-    'Gamma',1,'Kappa',0.2,'Iterations',10);
+    'Gamma',1,'Kappa',0.1,'Iterations',10);
 
 if(~exist('Options','var')), 
     Options=defaultoptions; 
@@ -106,7 +106,7 @@ hold off
 divisionIDX = checkDivision(P,I);
 if(~isempty(divisionIDX))
     disp('division found!');
-    keyboard
+    %keyboard
     numNew = numel(divisionIDX);
     Pnew = cell(1,numNew*2);
     for i=1:1:numNew

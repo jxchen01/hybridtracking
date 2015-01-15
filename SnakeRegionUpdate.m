@@ -17,7 +17,7 @@ function Ps=SnakeRegionUpdate(I,B,Ps,Fedge,BMap,gamma,kappa,delta)
 %
 % Function is written by Jianxu Chen (University of Notre dame) on Jan 2015
 % modified based on a script from D.Kroon University of Twente 
-ww=0.5;
+ww=0.0;
 
 [xdim,ydim]=size(I);
 
@@ -36,7 +36,7 @@ dphi=zeros(nPoints,2);
 rp=zeros(nPoints,2);
 Fext=zeros(nPoints,2);
 for ci=1:1:numContour
-%     if(ci==4)  
+%     if(ci==15)  
 %         keyboard;
 %     end
     % retrieve info of current cell

@@ -1,4 +1,4 @@
-function [cellEachFrame,cMat]=updateCellEachFrame(cellEachFrame,newCellFrame,Ps,propagateIdx,tarMat,sz,divisionIDX)
+function [cellEachFrame,cMat]=updateCellEachFrame(cellEachFrame,newCellFrame,Ps,propagateIdx,tarMat,sz,divisionIDX,Options)
 
 cMat = zeros(sz);
 
@@ -50,7 +50,7 @@ for i=1:1:numProp
     se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
     im = im | imdilate(tmpHead,se);
     
-    [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf));
+    [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf),Options.minBranch);
     
     if(removedFlag)
         %skipIdx = cat(2,skipIdx,i);
@@ -87,7 +87,7 @@ if(~isempty(divisionIDX))
     for i=numProp+1:1:numel(Ps)
         % extract the centerline of region
         im=Ps{i}.region;
-        [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf));
+        [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf),Options.minBranch);
         
         if(removedFlag)
             %skipIdx = cat(2,skipIdx,i);
@@ -123,6 +123,6 @@ for i=1:1:numel(cellEachFrame{3})
 end
 
 
-[srcCellList,tarCellList]=local_EMD(newCellFrame,cellEachFrame{3}, cMat, tarMat);
+[srcCellList,tarCellList]=local_EMD(newCellFrame,cellEachFrame{3}, cMat, tarMat, Options);
 cellEachFrame{2}=srcCellList;
 cellEachFrame{3}=tarCellList;

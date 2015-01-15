@@ -4,7 +4,7 @@
 clc
 disp('Program Starts...');
 
-sq=0;
+sq=5;
 RawType='.png';
 
 %%%%% load segmentation results %%%%%%
@@ -12,27 +12,24 @@ S=load(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',nu
 cellEachFrame = S.cellEachFrame;
 matEachFrame = S.matEachFrame;
 
-%%%%% parameters %%%%%
-numFrameAhead = 3;
-Options=struct();
-Options.Verbose=true;
-Options.Iterations=30;
-
-numFrame = length(cellEachFrame);
-%numFrame = 30;
-
-% load manual segmentation of first frame
 BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq'...
     ,num2str(sq),'/manual.png']));
 
+%%%%% parameters %%%%%
+[xdim,ydim]=size(BW);
+Options=setParameters(xdim,ydim);
+numFrameAhead = Options.numFrameAhead;
+numFrame = length(cellEachFrame);
+%numFrame = 6;
+
+% load manual segmentation of first frame
 ctlImg=bwmorph(BW,'thin',Inf);
 cc=bwconncomp(BW);
 bwLabel=labelmatrix(cc);
-P=ExtractCells(bwLabel,ctlImg, 0.0);
+P=ExtractCells(bwLabel,ctlImg,Options);
 cellEachFrame{1}=P;
 matEachFrame{1}.Mat = double(labelmatrix(bwconncomp(ctlImg)));
 
-[xdim,ydim]=size(BW);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% low-level association (frame-by-frame matching) %%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,7 +40,7 @@ for i=2:1:numFrame
     disp(['Frame: ',num2str(i)])
     tarCellList=cellEachFrame{i};
     tarMat=matEachFrame{i}.Mat;
-    [srcCellList,tarCellList]=local_EMD(srcCellList,tarCellList, srcMat, tarMat);
+    [srcCellList,tarCellList]=local_EMD(srcCellList,tarCellList, srcMat, tarMat,Options);
     
     cellEachFrame{i-1}=srcCellList;
     if(i==numFrame)
@@ -57,21 +54,19 @@ end
 for frameIdx = 2:1:numFrame-numFrameAhead
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead),...
-        matEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead));
+        matEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead), Options);
     
     % extract (1) confirmed segmentation; (2) confirmed entering cell; 
     % (3) contours needs to evolve
-    [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,[xdim,ydim]);
+    [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,[xdim,ydim],Options);
     
-      if(frameIdx==7)
+    I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
+            num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
+        
         keyboard
-      end
-    
     
     if(numel(Ps)>0)
         % contour evolution
-        I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-            num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
         [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);
     else
         newPs=[]; divisionIDX=[];
@@ -79,7 +74,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     
     % update
     [cellFrame, cMat]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
-    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX);
+    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX, Options);
 
     DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
     

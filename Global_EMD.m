@@ -1,23 +1,25 @@
-function cellFrame = Global_EMD(cellFrame, matFrame)
+function cellFrame = Global_EMD(cellFrame, matFrame, Options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%% initialization %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 numFrame = numel(matFrame);
 [dimx, dimy] = size(matFrame{1}.Mat);
-alphaFlow = 6; % note: minimal cell size is 31 (see EMD_matching.m)
-divThresh=0.0001; % see local_EMD
-flowInfo = cell(500);
-numFlowEdge = 0;
-searchDepth=3; % Match frame k with k+1, k+2, ..., k+searchDepth. 
-bodyRatio=0.65; % see local_EMD
 
-candiRadiusK=[15,20]; % radius=10 for k+1 (see local_EMD)
+bodyRatio = Options.bodyRatio;
+searchDepth = Options.searchDepth;
+candiRadiusK = Options.candiRadiusK;
+
 se=cell(1,searchDepth-1);
-tarMat=zeros(dimx,dimy,searchDepth-1);
-
 for i=1:1:searchDepth-1
     se{i}=strel('disk',candiRadiusK(i));
 end
 
+%options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
+%    'off','LargeScale', 'off', 'Simplex', 'on');
+options = optimset('Display', 'off', 'Diagnostics','off');
+
+tarMat=zeros(dimx,dimy,searchDepth-1);
+flowInfo = cell(500);
+numFlowEdge = 0;
 flowConst = [];
 outNum = 0;
 flowCapIdx = zeros(numFrame, 1000);
@@ -63,7 +65,7 @@ for frameK = 1:1:numFrame-1
                 cellFrame{frameK+1}{tmpCandi(j)}.length-cellFrame{frameK+1}{tmpCandi(j)}.inflow]);
             
             % if reach here, it means a potential flow is found
-            tmpD = ComputeDist(tmpCell.ctl,tmpCell.length, cellFrame{frameK+1}{tmpCandi(j)}.ctl,cellFrame{frameK+1}{tmpCandi(j)}.length, divThresh,0);
+            tmpD = ComputeDist(tmpCell.ctl,tmpCell.length, cellFrame{frameK+1}{tmpCandi(j)}.ctl,cellFrame{frameK+1}{tmpCandi(j)}.length,0);
             if(tmpD<500)
                 numFlowEdge = numFlowEdge + 1;
                 flowInfo{numFlowEdge} = struct('head',[frameK,i], 'tail',[frameK+1,tmpCandi(j)],'edgeCost',tmpD,'ub',flowCap,'outConstIdx', outNum);
@@ -99,7 +101,7 @@ for frameK = 1:1:numFrame-1
                 flowCap = min([tmpCell.length-tmpCell.outflow , cellFrame{idxFM}{tmpCandi(j)}.length-cellFrame{idxFM}{tmpCandi(j)}.inflow]);                
                 
                 % if reach here, it means a potential flow is found
-                tmpD = ComputeDist(tmpCell.ctl,tmpCell.length, cellFrame{idxFM}{tmpCandi(j)}.ctl,cellFrame{idxFM}{tmpCandi(j)}.length, divThresh,0);
+                tmpD = ComputeDist(tmpCell.ctl,tmpCell.length, cellFrame{idxFM}{tmpCandi(j)}.ctl,cellFrame{idxFM}{tmpCandi(j)}.length,0);
                 if(tmpD<500)
                     numFlowEdge = numFlowEdge + 1;
                     flowInfo{numFlowEdge} = struct('head',[frameK,i], 'tail',[idxFM,tmpCandi(j)],'edgeCost',tmpD,'ub',flowCap,'outConstIdx', outNum);
@@ -205,10 +207,7 @@ for i=1:1:numFlowEdge
 end
 clear tmpEdge tmpIdx tmpTail 
 
-options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
-    'off','LargeScale', 'off', 'Simplex', 'on');
-
-[xval,fval,exitflag,output] = linprog(weight,Aneq,flowConst,Aeq,beq,lb,[],[],options);
+[xval,~,exitflag,output] = linprog(weight,Aneq,flowConst,Aeq,beq,lb,[],[],options);
 
 if(exitflag~=1)
     disp(output.message);

@@ -1,6 +1,6 @@
-function [im1,removedFlag]=pruneLine(im1)
+function [im1,removedFlag]=pruneLine(im1,MinBranch)
 
-MinBranch=7;
+%MinBranch=7;
 removedFlag=false;
 
 if(nnz(im1)<MinBranch)
