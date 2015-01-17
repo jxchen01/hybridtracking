@@ -49,14 +49,36 @@ for i=1:1:numProp
     
     se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
     im = im | imdilate(tmpHead,se);
-    
-    [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf),Options.minBranch);
-    
-    if(removedFlag)
-        %skipIdx = cat(2,skipIdx,i);
+% 
+%     ctl0=bwmorph(im,'thin',Inf);
+%     [ctl, removedFlag] = pruneLine(ctl0,Options.minBranch);
+%     
+%     if(removedFlag)
+%         continue;
+%     end
+%     
+%     ctlList=sortOneCellPixel(ctl);
+
+    % if the contour is shorter than a threshold, close to boundary, also
+    % becoming shorter than that of last frame
+    if((Ps{i}.length < Options.lengthCanSkip)  ...
+            && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
+            && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
         continue;
     end
-    
+
+    pts= Ps{i}.pts;
+    ctl=zeros(sz);
+    for pid=1:1:size(pts,1)-1
+        [px,py]=bresenham(pts(pid,1),pts(pid,2),pts(pid+1,1),pts(pid+1,2));
+        pidx = sub2ind(sz,px,py);
+        ctl(pidx)=1;
+    end
+    ctl = bwmorph(ctl,'thin',Inf);
+    if(nnz(ctl)<3)
+        disp('contour evolution error');
+        keyboard
+    end
     ctlList=sortOneCellPixel(ctl);
     
     sig=sig+1;
@@ -87,12 +109,21 @@ if(~isempty(divisionIDX))
     for i=numProp+1:1:numel(Ps)
         % extract the centerline of region
         im=Ps{i}.region;
-        [ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf),Options.minBranch);
+        %[ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf),Options.minBranch);
+        %
+        %if(removedFlag)
+        %    %skipIdx = cat(2,skipIdx,i);
+        %    continue;
+        %end
         
-        if(removedFlag)
-            %skipIdx = cat(2,skipIdx,i);
-            continue;
+        pts= Ps{i}.pts;
+        ctl=zeros(sz);
+        for pid=1:1:size(pts,1)-1
+            [px,py]=bresenham(pts(pid,1),pts(pid,2),pts(pid+1,1),pts(pid+1,2));
+            pidx = sub2ind(sz,px,py);
+            ctl(pidx)=1;
         end
+        ctl = bwmorph(ctl,'thin',Inf);
         
         ctlList=sortOneCellPixel(ctl);
         

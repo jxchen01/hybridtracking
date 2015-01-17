@@ -2,26 +2,36 @@ function [newPs, skipIdx]=contourPropagate(Ps,sz, Options)
 
 shrinkRate = Options.ShrinkPixelNum;
 nPoints = Options.nPoints;
-lengthCanSkip = Options.lengthCanSkip;
+%lengthCanSkip = Options.lengthCanSkip;
 
     
 skipIdx=[];
 
 for i=1:1:numel(Ps)
     
-    if(Ps{i}.length<lengthCanSkip)
-        skipIdx=cat(1,skipIdx,i);
-        continue;
-    end
+%     if(Ps{i}.length<lengthCanSkip)
+%         skipIdx=cat(1,skipIdx,i);
+%         continue;
+%     end
     
     P=Ps{i}.ctl;
     
     % Calculate distance between points
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
+    LastLength = dis(end);
     
-    if(dis(end)<2*shrinkRate)
-        skipIdx = cat(1,skipIdx,i);
-        continue;
+    shrinkRate = Options.ShrinkPixelNum;
+    if(LastLength<2*shrinkRate)
+        if(isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
+            skipIdx = cat(1,skipIdx,i);
+            continue;
+        else
+            shrinkRate=1;
+        end
+    end
+    
+    if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
+        LastLength = -1 * LastLength;
     end
 
     % Resample to make uniform points
@@ -39,13 +49,10 @@ for i=1:1:numel(Ps)
     %len = Ps{i}.length;
     %len = Ps{i}.targetLength ;
     
-    if(isCloseToBoundary(K,sz(1),sz(2), Options.BoundThresh))
-        len = -1;
-    else
-        len = dis(end);
-    end
+     % Calculate distance between points
+    disK=cumsum(sqrt(sum((K(2:end,:)-K(1:end-1,:)).^2,2)));
     
-    Ps{i}=struct('pts',K,'thickness',t,'length',0,'targetLength',len,...
+    Ps{i}=struct('pts',K,'thickness',t,'length',disK(end),'targetLength',LastLength,...
     'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
 
     clear O len K P dis t

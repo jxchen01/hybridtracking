@@ -121,4 +121,6 @@ elseif(cc.NumObjects==0)
     removedFlag=true;
 end
 
+if(nnz(im1)<MinBranch)
+    removedFlag=true;
 end

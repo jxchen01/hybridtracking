@@ -25,11 +25,12 @@ end
 Options.candiRadiusK = cK;
 
 % Contour Evolution Parameters
-Options.Verbose=true;
+Options.Verbose=false;
 Options.Iterations=30;
 Options.nPoints=20;
-Options.ShrinkPixelNum = 10;
-Options.lengthCanSkip=12;
+Options.ShrinkPixelNum = 8;
+Options.lengthCanSkip=8;
+Options.repelThresh=8;
 
 % Prior Information Parameters
 Options.minBranch = 7; %%% used for pruning centerlines

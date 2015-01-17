@@ -1,7 +1,7 @@
-function [RepelForce, ContourImage]=fetchInfo(Ps,BMap)
+function [RepelForce, ContourImage]=fetchInfo(Ps,BMap,repelThresh)
 
 %%% key parameter %%%
-repelThresh=7;
+%repelThresh=10;
 %%%%%%%%%%%%%%%%%%%%%
 
 [xdim,ydim]=size(BMap);

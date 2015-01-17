@@ -19,8 +19,8 @@ BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/
 [xdim,ydim]=size(BW);
 Options=setParameters(xdim,ydim);
 numFrameAhead = Options.numFrameAhead;
-numFrame = length(cellEachFrame);
-%numFrame = 6;
+%numFrame = length(cellEachFrame);
+numFrame = 6;
 
 % load manual segmentation of first frame
 ctlImg=bwmorph(BW,'thin',Inf);
@@ -63,8 +63,10 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
             num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
         
-        keyboard
-    
+   if(frameIdx>=9)
+       keyboard
+   end
+
     if(numel(Ps)>0)
         % contour evolution
         [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);

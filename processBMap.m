@@ -1,7 +1,7 @@
-function repelMap=processBMap(BMap)
+function repelMap=processBMap(BMap,repelThresh)
 
 %%% key parameter %%%
-repelThresh=6;
+%repelThresh=10;
 %%%%%%%%%%%%%%%%%%%%%
 
 BMap = BMap>0;

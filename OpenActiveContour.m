@@ -30,7 +30,7 @@ function [P, divisionIDX]=OpenActiveContour(I,P,BMap0,Options)
 
 % Process inputs
 defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
-    'Gamma',1,'Kappa',0.1,'Iterations',10);
+    'Gamma',1,'Kappa',0.2,'Iterations',10);
 
 if(~exist('Options','var')), 
     Options=defaultoptions; 
@@ -63,7 +63,7 @@ if(Options.Verbose)
 end
 
 % prepare the barrier map
-BMap = processBMap(BMap0);
+BMap = processBMap(BMap0,Options.repelThresh);
 
 % Transform the Image into an External Energy Image
 Eext = ExternalForceImage2D(I,0.04, 2, 0.01 ,6);
@@ -78,7 +78,7 @@ Fext=GVFOptimizeImageForces2D(Fext, 0.1, 5, 1.0);
 
 for i=1:Options.Iterations    
     %P=SnakeMoveIteration2D(S,P,Fext,Options.Gamma,Options.Kappa,Options.Delta,thickness,targetLength);
-    P=SnakeRegionUpdate(I,S,P,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta);
+    P=SnakeRegionUpdate(I,S,P,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
     
     %if(mod(i,5)==0)
         P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
@@ -106,7 +106,7 @@ hold off
 divisionIDX = checkDivision(P,I);
 if(~isempty(divisionIDX))
     disp('division found!');
-    %keyboard
+    keyboard
     numNew = numel(divisionIDX);
     Pnew = cell(1,numNew*2);
     for i=1:1:numNew
@@ -131,14 +131,14 @@ if(~isempty(divisionIDX))
     end
     BMap1 = bwareaopen(BMap1,10);
     
-    BMap = processBMap(BMap1);
+    BMap = processBMap(BMap1,Options.repelThresh);
     
     if(Options.Verbose)
          figure(2), imshow(I), hold on; myHandle=drawContours(Pnew,0,myHandle,0);
     end
     
     for i=1:Options.Iterations
-        Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta);
+        Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
         Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
         Pnew = cellInfoUpdate(Pnew,I);
         if(Options.Verbose)
