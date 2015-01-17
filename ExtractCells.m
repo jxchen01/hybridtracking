@@ -1,4 +1,4 @@
-function cellList = ExtractCells(bwLabel,im,Options)
+function [cellList, cMat] = ExtractCells(bwLabel,im,Options)
 
 im(im>0)=1;
 [xdim,ydim]=size(im);
@@ -16,6 +16,7 @@ clear epImg
 ep=find(labelImg==2);
 currentCellNum=0;
 cellList=cell(1,cellNum);
+cMat=zeros(xdim,ydim);
 
 while(~isempty(ep))
     currentCellNum=currentCellNum+1;
@@ -74,12 +75,16 @@ while(~isempty(ep))
     
     cellList{currentCellNum}=struct('length',pixNum,'ctl',pts,'child',[],...
         'parent',[],'candi',[],'inflow',0,'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',seg_region);
+        'relaxOutCost',0,'seg',seg_region,'id',currentCellNum);
     
     if(~isCloseToBoundary(pts,xdim,ydim, Options.BoundThresh))
         cellList{currentCellNum}.copyLength = pixNum;
     end
 
+    for ii=1:1:pixNum
+        cMat(pts(ii,1),pts(ii,2))=currentCellNum;
+    end
+    
     ep=find(labelImg==2); 
 end
 

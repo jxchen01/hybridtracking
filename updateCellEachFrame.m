@@ -1,4 +1,4 @@
-function [cellEachFrame,cMat]=updateCellEachFrame(cellEachFrame,newCellFrame,Ps,propagateIdx,tarMat,sz,divisionIDX,Options)
+function [cellEachFrame,cMat,maxID]=updateCellEachFrame(cellEachFrame,newCellFrame,Ps,propagateIdx,tarMat,sz,divisionIDX,maxID,Options)
 
 cMat = zeros(sz);
 
@@ -13,14 +13,15 @@ for i=1:1:sig
     pid=newCellFrame{i}.parent;
     
     if(isempty(pid)) % entering cell
+        maxID = maxID + 1;
         newCellFrame{i}=struct('length',newCellFrame{i}.length,'ctl',pp,'child',[],...
         'parent',[],'candi',[],'inflow',newCellFrame{i}.length,'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',newCellFrame{i}.seg);
+        'relaxOutCost',0,'seg',newCellFrame{i}.seg,'id',maxID);
     else
         newCellFrame{i}=struct('length',newCellFrame{i}.length,'ctl',pp,'child',[],...
         'parent',pid,'candi',[],'inflow',min([cellEachFrame{1}{pid}.length,...
         newCellFrame{i}.length]),'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',newCellFrame{i}.seg);
+        'relaxOutCost',0,'seg',newCellFrame{i}.seg, 'id', cellEachFrame{1}{pid}.id);
     end
    
 end
@@ -86,15 +87,14 @@ for i=1:1:numProp
     cMat(ctl>0)=sig;
     
     % associate the child of the corresponding cell in previous frame
-    pid=propagateIdx(i);
+    pid=propagateIdx(i);  
     
-    
-    % insert the new cell
+    % compute the flow amount
     mf = min([Ps{i}.length, cellEachFrame{1}{pid}.length]);
-    
+    % insert the new cell
     tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
         'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',im);
+        'relaxOutCost',0,'seg',im, 'id',cellEachFrame{1}{pid}.id);
     
     if(Ps{i}.length<max([0.8*Ps{i}.targetLength, Ps{i}.targetLength-4])...
             && ~isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh))
@@ -115,12 +115,6 @@ if(~isempty(divisionIDX))
     for i=numProp+1:1:numel(Ps)
         % extract the centerline of region
         im=Ps{i}.region;
-        %[ctl, removedFlag] = pruneLine(bwmorph(im,'thin',Inf),Options.minBranch);
-        %
-        %if(removedFlag)
-        %    %skipIdx = cat(2,skipIdx,i);
-        %    continue;
-        %end
         
         pts= Ps{i}.pts;
         ctl=zeros(sz);
@@ -145,7 +139,7 @@ if(~isempty(divisionIDX))
         
         tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
             'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
-            'relaxOutCost',0,'seg',im);
+            'relaxOutCost',0,'seg',im, 'id',cellEachFrame{1}{pid}.id);
         newCellFrame=cat(2,newCellFrame,tmp);
         
         cellEachFrame{1}{pid}.child=cat(2,sig,cellEachFrame{1}{pid}.child);

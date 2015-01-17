@@ -28,10 +28,10 @@ if(drawType==1)
         J = J | imdilate(tmp,se);
     end
     
-    figure(3);
-    imagesc(I,[0, 1]); axis off; axis equal; colormap(gray); 
-    hold on; contour(J,[1 1],'r','Linewidth',1); hold off;
-    drawnow
+%     figure(3);
+%     imagesc(I,[0, 1]); axis off; axis equal; colormap(gray); 
+%     hold on; contour(J,[1 1],'r','Linewidth',1); hold off;
+%     drawnow
 
 elseif(drawType==2)
     for i=1:1:numel(Ps)
@@ -44,10 +44,10 @@ elseif(drawType==2)
         J = J | imdilate(tmp,se);
     end
     
-    figure(4);
-    imagesc(I,[0, 1]); axis off; axis equal; colormap(gray); 
-    hold on; contour(J,[1 1],'r','Linewidth',1); hold off;
-    drawnow
+%     figure(4);
+%     imagesc(I,[0, 1]); axis off; axis equal; colormap(gray); 
+%     hold on; contour(J,[1 1],'r','Linewidth',1); hold off;
+%     drawnow
 end
 
 

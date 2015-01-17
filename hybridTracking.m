@@ -19,16 +19,22 @@ BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/
 [xdim,ydim]=size(BW);
 Options=setParameters(xdim,ydim);
 numFrameAhead = Options.numFrameAhead;
-numFrame = length(cellEachFrame);
-%numFrame = 6;
+%numFrame = length(cellEachFrame);
+numFrame = 6;
+cMap = rand(1000,3).*0.9 + 0.1;
+cMap(1,:)=[0,0,0];
 
 % load manual segmentation of first frame
-ctlImg=bwmorph(BW,'thin',Inf);
 cc=bwconncomp(BW);
 bwLabel=labelmatrix(cc);
-P=ExtractCells(bwLabel,ctlImg,Options);
+ctlImg=bwmorph(BW,'thin',Inf);
+[P, cMat]=ExtractCells(bwLabel,ctlImg,Options);
 cellEachFrame{1}=P;
-matEachFrame{1}.Mat = double(labelmatrix(bwconncomp(ctlImg)));
+matEachFrame{1}.Mat = cMat;
+
+maxID = numel(P);
+
+clear cc bwLabel P cMat ctlImg BW S
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% low-level association (frame-by-frame matching) %%%%%%%%%%%%
@@ -49,6 +55,8 @@ for i=2:1:numFrame
     srcCellList=tarCellList;
     srcMat=tarMat; 
 end
+
+clear srcMat srcCellList tarMat tarCellList i
 
 %%%% main loop %%%
 I1=mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
@@ -79,10 +87,11 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     end
     
     % update
-    [cellFrame, cMat]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
-    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX, Options);
+    [cellFrame, cMat, maxID]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
+    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX, maxID, Options);
 
-    DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
+    %DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
+    drawColorRegions(cellFrame{2}, [xdim,ydim], frameIdx ,cMap);
     
     saveas(gcf,['./track/img0',num2str(frameIdx+100),'.png'],'png');
     
@@ -91,12 +100,8 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     
     I1=I2;
     I2=I3;
+    
+    clear cellFrame cMat newPs divisionIDX Ps I newCellFrame cellSemiGlobal propagateIdx
 end
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%% high-level association (globally min-cost flow) %%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%disp('high-level starts');
-%cellEachFrameGlobal = Global_EMD(cellEachFrame, matEachFrame);
-%cellEachFrameLocal = cellEachFrame;
+clear I1 I2 I3 
