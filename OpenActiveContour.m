@@ -106,7 +106,7 @@ hold off
 divisionIDX = checkDivision(P,I);
 if(~isempty(divisionIDX))
     disp('division found!');
-    keyboard
+    %keyboard
     numNew = numel(divisionIDX);
     Pnew = cell(1,numNew*2);
     for i=1:1:numNew

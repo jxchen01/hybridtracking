@@ -19,8 +19,8 @@ BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/
 [xdim,ydim]=size(BW);
 Options=setParameters(xdim,ydim);
 numFrameAhead = Options.numFrameAhead;
-%numFrame = length(cellEachFrame);
-numFrame = 6;
+numFrame = length(cellEachFrame);
+%numFrame = 6;
 
 % load manual segmentation of first frame
 ctlImg=bwmorph(BW,'thin',Inf);
@@ -51,7 +51,13 @@ for i=2:1:numFrame
 end
 
 %%%% main loop %%%
+I1=mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
+    num2str(sq),'/raw/img0101',RawType]));
+I2=mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
+    num2str(sq),'/raw/img0102',RawType]));
+
 for frameIdx = 2:1:numFrame-numFrameAhead
+    disp(['processing frame: ',num2str(frameIdx)]);
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead),...
         matEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead), Options);
@@ -60,12 +66,10 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     % (3) contours needs to evolve
     [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,[xdim,ydim],Options);
     
-    I = imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-            num2str(sq),'/raw/img0',num2str(100+frameIdx),RawType]);
+    I3 = mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
+            num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));
         
-   if(frameIdx>=9)
-       keyboard
-   end
+    I = mat2gray((I1+I2+I3)./3);
 
     if(numel(Ps)>0)
         % contour evolution
@@ -84,6 +88,9 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     
     matEachFrame{frameIdx}.Mat = cMat;
     cellEachFrame(1,frameIdx-1:1:frameIdx+1)=cellFrame(1,1:3);
+    
+    I1=I2;
+    I2=I3;
 end
 
 

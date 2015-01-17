@@ -1,10 +1,10 @@
-function [srcCellList,tarCellList]=local_EMD(srcCellList, tarCellList, srcMat, tarMat, Options)
+function [srcCellList,tarCellList]=local_EMD(srcCellList, tarCellList, srcMat, tarMat, algOptions)
 
 %%%%%%% parameters %%%%%%%
-halfROIs = Options.halfROIs;
-BoundThreshold = Options.BoundThresh;
-candiRadius=Options.candiRadius;
-bodyRatio=Options.bodyRatio;
+halfROIs = algOptions.halfROIs;
+BoundThreshold = algOptions.BoundThresh;
+candiRadius=algOptions.candiRadius;
+bodyRatio=algOptions.bodyRatio;
 %options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
 %    'off','LargeScale', 'off', 'Simplex', 'on');
 options = optimset('Display', 'off', 'Diagnostics','off');
@@ -130,8 +130,8 @@ for rx1=1:halfROIs:dimx
     for ry1=1:halfROIs:dimy
         
         countRegion=countRegion+1;
-        str=['Region: ',num2str(countRegion)];
-        disp(str);
+
+        % disp(['Region: ',num2str(countRegion)]);
         
         [ry2,flagy]=min([2*halfROIs+ry1,dimy]);
         ROImask(rx1:rx2,ry1:ry2)=1;
@@ -213,7 +213,7 @@ for rx1=1:halfROIs:dimx
         Aeq = ones(1,varNum+sNum+tNum);
         beq = min([S1,S2]);
         
-        [xval,fval,exitflag,output] = linprog(weight,A,b,Aeq,beq,lb,ub,[], options);
+        [xval,~,exitflag,output] = linprog(weight,A,b,Aeq,beq,lb,ub,[], options);
         if(exitflag~=1)
             disp(output.message);
             keyboard

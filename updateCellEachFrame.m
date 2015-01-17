@@ -95,6 +95,12 @@ for i=1:1:numProp
     tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
         'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
         'relaxOutCost',0,'seg',im);
+    
+    if(Ps{i}.length<max([0.8*Ps{i}.targetLength, Ps{i}.targetLength-4])...
+            && ~isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh))
+        tmp.dangerLength=Ps{i}.targetLength;
+    end
+        
     newCellFrame=cat(2,newCellFrame,tmp);
     
     cellEachFrame{1}{pid}.child=sig;

@@ -1,12 +1,12 @@
-function cellFrame = Global_EMD(cellFrame, matFrame, Options)
+function cellFrame = Global_EMD(cellFrame, matFrame, algOptions)
 
 %%%%%%%%%%%%%%%%%%%%%%%%% initialization %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 numFrame = numel(matFrame);
 [dimx, dimy] = size(matFrame{1}.Mat);
 
-bodyRatio = Options.bodyRatio;
-searchDepth = Options.searchDepth;
-candiRadiusK = Options.candiRadiusK;
+bodyRatio = algOptions.bodyRatio;
+searchDepth = algOptions.searchDepth;
+candiRadiusK = algOptions.candiRadiusK;
 
 se=cell(1,searchDepth-1);
 for i=1:1:searchDepth-1

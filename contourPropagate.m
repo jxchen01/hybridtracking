@@ -21,17 +21,19 @@ for i=1:1:numel(Ps)
     LastLength = dis(end);
     
     shrinkRate = Options.ShrinkPixelNum;
-    if(LastLength<2*shrinkRate)
+    if(LastLength<=2*shrinkRate+3)
         if(isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
             skipIdx = cat(1,skipIdx,i);
             continue;
         else
-            shrinkRate=1;
+            shrinkRate=max([1,floor(LastLength*0.35)]);
         end
     end
     
     if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
         LastLength = -1 * LastLength;
+    elseif(isfield(Ps{i},'dangerLength'))
+        LastLength = Ps{i}.dangerLength;
     end
 
     % Resample to make uniform points
