@@ -50,22 +50,21 @@ for i=1:1:numProp
     
     se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
     im = im | imdilate(tmpHead,se);
-% 
-%     ctl0=bwmorph(im,'thin',Inf);
-%     [ctl, removedFlag] = pruneLine(ctl0,Options.minBranch);
-%     
-%     if(removedFlag)
-%         continue;
-%     end
-%     
-%     ctlList=sortOneCellPixel(ctl);
 
-    % if the contour is shorter than a threshold, close to boundary, also
-    % becoming shorter than that of last frame
+    % remove the contour, if it is shorter than a threshold, close to
+    % boundary,also becoming shorter than its length in the last frame
     if((Ps{i}.length < Options.lengthCanSkip)  ...
             && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
             && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
         continue;
+    end
+    
+    % remove the contour, if the interior intensity differ too much from
+    % that in the last frame
+    intensityDiff =Ps{i}.intensity - Ps{i}.LastFrameIntensity;
+    if(intensityDiff<0 && -intensityDiff>0.5*Ps{i}.LastFrameIntensity)
+        disp('catch it! intensity change');
+        keyboard;
     end
 
     pts= Ps{i}.pts;
@@ -82,8 +81,29 @@ for i=1:1:numProp
     end
     ctlList=sortOneCellPixel(ctl);
     
-    sig=sig+1;
+    % remove the contour, if the body orientation changes too much 
+    % (while it is not too short), the ctl moved too far away.
+    lenA = size(ctlList,1);
+    lenB = size(Ps{i}.LastFramePts,1);
+    if(lenB>lenA)
+        [MaxD1,~]=measureMatch(ctlList,lenA,Ps{i}.LastFramePts,lenB, 0);
+        [MaxD2,~]=measureMatch(ctlList(end:-1:1,:),lenA,Ps{i}.LastFramePts,lenB, 0);
+    else
+        [MaxD1,~]=measureMatch(Ps{i}.LastFramePts,lenB,ctlList,lenA, 0);
+        [MaxD2,~]=measureMatch(Ps{i}.LastFramePts,lenB,ctlList(end:-1:1,:),lenA, 0);
+    end
+    if(MaxD1<MaxD2)
+        MaxD=MaxD1; 
+    else
+        MaxD=MaxD2; 
+    end     
+    if(Ps{i}.length>5 && MaxD>10)
+        disp('catch it! big move');
+        keyboard;
+    end
     
+    
+    sig=sig+1;
     cMat(ctl>0)=sig;
     
     % associate the child of the corresponding cell in previous frame

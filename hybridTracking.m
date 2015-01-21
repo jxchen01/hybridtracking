@@ -19,8 +19,8 @@ BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/
 [xdim,ydim]=size(BW);
 Options=setParameters(xdim,ydim);
 numFrameAhead = Options.numFrameAhead;
-%numFrame = length(cellEachFrame);
-numFrame = 6;
+numFrame = length(cellEachFrame);
+%numFrame = 6;
 cMap = rand(1000,3).*0.9 + 0.1;
 cMap(1,:)=[0,0,0];
 
@@ -66,18 +66,19 @@ I2=mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015
 
 for frameIdx = 2:1:numFrame-numFrameAhead
     disp(['processing frame: ',num2str(frameIdx)]);
+    
+    % build the image of interest
+    I3 = mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
+            num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
+    I = mat2gray((I1+I2+I3)./3);
+    
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead),...
         matEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead), Options);
     
     % extract (1) confirmed segmentation; (2) confirmed entering cell; 
     % (3) contours needs to evolve
-    [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,[xdim,ydim],Options);
-    
-    I3 = mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-            num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));
-        
-    I = mat2gray((I1+I2+I3)./3);
+    [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,I,Options);
 
     if(numel(Ps)>0)
         % contour evolution

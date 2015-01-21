@@ -30,7 +30,7 @@ div=0;
 for k=2:1:(LA-1)
     v0=[tM(k,1),tM(k,2)];
     v1=[tV(k,1),tV(k,2)];
-    v2=[tU(k,1),tU(k,2)];
+    v2=[tU(k,1),tU(k,2)];   
     if(norm(v0)==0)
         continue;
     else

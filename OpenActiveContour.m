@@ -113,10 +113,18 @@ if(~isempty(divisionIDX))
         tarLen = 0.45*P{cid}.targetLength;
         p1 = pp(1:1:floor(0.3*Options.nPoints),:);
         p2 = pp(ceil(0.7*Options.nPoints):1:end,:);
+        
+        %%% copy infor in last frame %%%
+        intensityLast = P{cid}.LastFrameIntensity;
+        ptsLast=P{cid}.LastFramePts;
+        lenLast=round(0.45*size(ptsLast));
+        
         Pnew{2*i-1}=struct('pts',p1,'thickness',P{cid}.thickness,'length',0,...
-        'targetLength',tarLen,'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
+        'targetLength',tarLen,'strip1',[],'strip2',[],'region',[],'intensity',[],...
+        'normvec',[],'LastFrameIntensity',intensityLast,'LastFramePts',ptsLast(1:lenLast,:));
         Pnew{2*i}=struct('pts',p2,'thickness',P{cid}.thickness,'length',0,...
-        'targetLength',tarLen,'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
+        'targetLength',tarLen,'strip1',[],'strip2',[],'region',[],'intensity',[],...
+        'normvec',[],'LastFrameIntensity',intensityLast,'LastFramePts',ptsLast(end-lenLast+1:end,:));
     end
     Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
     Pnew = cellInfoUpdate(Pnew,I);

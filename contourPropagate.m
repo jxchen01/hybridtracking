@@ -1,18 +1,12 @@
-function [newPs, skipIdx]=contourPropagate(Ps,sz, Options)
+function [newPs, skipIdx]=contourPropagate(Ps,I, Options)
 
-shrinkRate = Options.ShrinkPixelNum;
+sz=size(I);
 nPoints = Options.nPoints;
 %lengthCanSkip = Options.lengthCanSkip;
 
-    
 skipIdx=[];
 
 for i=1:1:numel(Ps)
-    
-%     if(Ps{i}.length<lengthCanSkip)
-%         skipIdx=cat(1,skipIdx,i);
-%         continue;
-%     end
     
     P=Ps{i}.ctl;
     
@@ -35,27 +29,37 @@ for i=1:1:numel(Ps)
     elseif(isfield(Ps{i},'dangerLength'))
         LastLength = Ps{i}.dangerLength;
     end
+    
+    % compute cell thichness
+    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
 
     % Resample to make uniform points
     K=zeros(nPoints,2);
     K(:,1) = interp1(dis,P(:,1),linspace(shrinkRate,dis(end)-shrinkRate,nPoints));
     K(:,2) = interp1(dis,P(:,2),linspace(shrinkRate,dis(end)-shrinkRate,nPoints));
-    %K(:,1) = interp1(dis,O(:,1),linspace(dis(end)*shrinkRate,dis(end)*(1-shrinkRate),nPoints));
-    %K(:,2) = interp1(dis,O(:,2),linspace(dis(end)*shrinkRate,dis(end)*(1-shrinkRate),nPoints));
     
     % Clamp contour to boundary
     K(:,1)=min(max(K(:,1),1),sz(1));
     K(:,2)=min(max(K(:,2),1),sz(2));
     
-    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
-    %len = Ps{i}.length;
-    %len = Ps{i}.targetLength ;
-    
      % Calculate distance between points
     disK=cumsum(sqrt(sum((K(2:end,:)-K(1:end-1,:)).^2,2)));
     
+    % copy current information so that the evolved contour can be examined
+    SingleContour=false(sz);
+    [R1,R2,NV]=getRibbon(K,t,sz(1),sz(2));
+    contourList=[R1(:,:);R2(end:-1:1,:);R1(1,:)];
+    for ic=2:1:size(contourList,1)
+        [xp,yp]=bresenham(contourList(ic,1),contourList(ic,2),contourList(ic-1,1),contourList(ic-1,2));
+        pidx=sub2ind(sz,xp,yp);
+        SingleContour(pidx)=true;
+    end
+    SingleContour=imfill(SingleContour,'holes');
+    interiorIntensity = mean(I(SingleContour>0));
+
     Ps{i}=struct('pts',K,'thickness',t,'length',disK(end),'targetLength',LastLength,...
-    'strip1',[],'strip2',[],'region',[],'intensity',[],'normvec',[]);
+    'strip1',R1,'strip2',R2,'region',SingleContour,'intensity',interiorIntensity,...
+    'normvec',NV,'LastFrameIntensity',interiorIntensity,'LastFramePts',P);
 
     clear O len K P dis t
 end
