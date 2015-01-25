@@ -12,8 +12,9 @@ BMap = zeros(sz);
 for i=1:1:numel(cFrame);
     
     if(isempty(cFrame{i}.parent)) 
-        if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2), Options.BoundThresh) && confirmEntry(cellEachFrame(1,2:1:end),i))
-            % confirmed entering cell
+        %if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2), Options.BoundThresh) && confirmEntry(cellEachFrame(1,2:1:end),i))
+        if(confirmEntry(cellEachFrame(1,2:1:end),i))
+            % confirmed entering cell or re-appearing cell
             newCellFrame = cat(2,newCellFrame, cFrame{i});
             BMap = BMap | cFrame{i}.seg;
         end

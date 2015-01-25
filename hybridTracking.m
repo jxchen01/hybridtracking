@@ -72,24 +72,28 @@ for frameIdx = 2:1:numFrame-numFrameAhead
             num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
     I = mat2gray((I1+I2+I3)./3);
     
-    % build correspondence within a period of time
-    cellSemiGlobal = Global_EMD(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead),...
-        matEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead), Options);
+    idxConsider=frameIdx-1:1:frameIdx+numFrameAhead;
     
-    % extract (1) confirmed segmentation; (2) confirmed entering cell; 
-    % (3) contours needs to evolve
+    % build correspondence within a period of time
+    cellSemiGlobal = Global_EMD(cellEachFrame(1,idxConsider),matEachFrame(1,idxConsider), Options);
+    
+    % extract:
+    %   (1) confirmed segmentation; 
+    %   (2) confirmed entering cell; 
+    %   (3) contours needs to evolve
     [Ps,newCellFrame,BMap,propagateIdx] = ConvertCellToContour(cellSemiGlobal,I,Options);
 
+    % contour evolution
     if(numel(Ps)>0)
-        % contour evolution
         [newPs, divisionIDX]=OpenActiveContour(I,Ps,BMap,Options);
     else
         newPs=[]; divisionIDX=[];
     end
     
     % update
-    [cellFrame, cMat, maxID]=updateCellEachFrame(cellEachFrame(1,frameIdx-1:1:frameIdx+numFrameAhead)...
-    ,newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,[xdim,ydim], divisionIDX, maxID, Options);
+    [cellFrame, cMat, maxID]=updateCellEachFrame(cellEachFrame(1,idxConsider),...
+    newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,...
+    [xdim,ydim], divisionIDX, maxID, Options);
 
     %DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
     drawColorRegions(cellFrame{2}, [xdim,ydim], frameIdx ,cMap);
@@ -102,7 +106,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     I1=I2;
     I2=I3;
     
-    clear cellFrame cMat newPs divisionIDX Ps I newCellFrame cellSemiGlobal propagateIdx
+    clear cellFrame cMat newPs divisionIDX Ps I newCellFrame cellSemiGlobal propagateIdx idxConsider
 end
 
 clear I1 I2 I3 

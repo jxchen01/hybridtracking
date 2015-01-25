@@ -33,7 +33,29 @@ clear idx pp i
 numProp = numel(propagateIdx);
 
 for i=1:1:numProp
-    % extract the centerline of region
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % check whether the contour should be removed
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    % Case 1: If it is shorter than a threshold, close to boundary,
+    %         also becoming shorter than its length in the last frame
+    if((Ps{i}.length < Options.lengthCanSkip)  ...
+            && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
+            && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
+        continue;
+    end
+    
+    % Case 2: If the interior intensity differ too much from that 
+    %         in the last frame. (Evolution Error)
+    if(CellDist(Ps{i})>2.5 || Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
+        disp('check evolution');
+        continue;
+    end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % extract the segmentation region
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     im=Ps{i}.region;
     
     %%% add two heads %%%
@@ -51,22 +73,9 @@ for i=1:1:numProp
     se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
     im = im | imdilate(tmpHead,se);
 
-    % remove the contour, if it is shorter than a threshold, close to
-    % boundary,also becoming shorter than its length in the last frame
-    if((Ps{i}.length < Options.lengthCanSkip)  ...
-            && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
-            && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
-        continue;
-    end
-    
-    % remove the contour, if the interior intensity differ too much from
-    % that in the last frame
-    intensityDiff =Ps{i}.intensity - Ps{i}.LastFrameIntensity;
-    if(intensityDiff<0 && -intensityDiff>0.5*Ps{i}.LastFrameIntensity)
-        disp('catch it! intensity change');
-        keyboard;
-    end
-
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % convert contour control points to centerline
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     pts= Ps{i}.pts;
     ctl=zeros(sz);
     for pid=1:1:size(pts,1)-1
@@ -75,34 +84,12 @@ for i=1:1:numProp
         ctl(pidx)=1;
     end
     ctl = bwmorph(ctl,'thin',Inf);
-    if(nnz(ctl)<3)
-        disp('contour evolution error');
-        keyboard
-    end
     ctlList=sortOneCellPixel(ctl);
     
-    % remove the contour, if the body orientation changes too much 
-    % (while it is not too short), the ctl moved too far away.
-    lenA = size(ctlList,1);
-    lenB = size(Ps{i}.LastFramePts,1);
-    if(lenB>lenA)
-        [MaxD1,~]=measureMatch(ctlList,lenA,Ps{i}.LastFramePts,lenB, 0);
-        [MaxD2,~]=measureMatch(ctlList(end:-1:1,:),lenA,Ps{i}.LastFramePts,lenB, 0);
-    else
-        [MaxD1,~]=measureMatch(Ps{i}.LastFramePts,lenB,ctlList,lenA, 0);
-        [MaxD2,~]=measureMatch(Ps{i}.LastFramePts,lenB,ctlList(end:-1:1,:),lenA, 0);
-    end
-    if(MaxD1<MaxD2)
-        MaxD=MaxD1; 
-    else
-        MaxD=MaxD2; 
-    end     
-    if(Ps{i}.length>5 && MaxD>10)
-        disp('catch it! big move');
-        keyboard;
-    end
-    
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % update information
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % add the centerline the cMat
     sig=sig+1;
     cMat(ctl>0)=sig;
     
@@ -111,18 +98,22 @@ for i=1:1:numProp
     
     % compute the flow amount
     mf = min([Ps{i}.length, cellEachFrame{1}{pid}.length]);
-    % insert the new cell
+    
+    % build the new cell
     tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
         'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
         'relaxOutCost',0,'seg',im, 'id',cellEachFrame{1}{pid}.id);
     
+    % when the length decreases too much, fire alwarm by setting dangerLength
     if(Ps{i}.length<max([0.8*Ps{i}.targetLength, Ps{i}.targetLength-4])...
             && ~isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh))
         tmp.dangerLength=Ps{i}.targetLength;
     end
         
+    % insert the new cell
     newCellFrame=cat(2,newCellFrame,tmp);
     
+    % update the parents the new cell in previous frame
     cellEachFrame{1}{pid}.child=sig;
     cellEachFrame{1}{pid}.outflow=mf;
 end
@@ -133,9 +124,49 @@ if(~isempty(divisionIDX))
         keyboard;
     end
     for i=numProp+1:1:numel(Ps)
-        % extract the centerline of region
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % check whether the contour should be removed
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        % Case 1: If it is shorter than a threshold, close to boundary,
+        %         also becoming shorter than its length in the last frame
+        if((Ps{i}.length < Options.lengthCanSkip)  ...
+                && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
+                && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
+            continue;
+        end
+        
+        % Case 2: If the interior intensity differ too much from that
+        %         in the last frame. (Evolution Error)
+        if(CellDist(Ps{i})>2.5 || Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
+            disp('check evolution');
+            continue;
+        end
+    
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % extract the segmentation region
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         im=Ps{i}.region;
         
+        %%% add two heads %%%
+        tmpHead=zeros(sz);
+        pts = Ps{i}.pts;
+        x1=round(pts(1,1));y1=round(pts(1,2));
+        if(x1<1), x1=1; elseif(x1>sz(1)), x1=sz(1); end
+        if(y1<1), y1=1; elseif(y1>sz(2)), y1=sz(2); end
+        tmpHead(x1,y1)=1;
+        x2=round(pts(end,1));y2=round(pts(end,2));
+        if(x2<1), x2=1; elseif(x2>sz(1)), x2=sz(1); end
+        if(y2<1), y2=1; elseif(y2>sz(2)), y2=sz(2); end
+        tmpHead(x2,y2)=1;
+        
+        se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
+        im = im | imdilate(tmpHead,se);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % convert contour control points to centerline
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         pts= Ps{i}.pts;
         ctl=zeros(sz);
         for pid=1:1:size(pts,1)-1
@@ -144,22 +175,27 @@ if(~isempty(divisionIDX))
             ctl(pidx)=1;
         end
         ctl = bwmorph(ctl,'thin',Inf);
-        
         ctlList=sortOneCellPixel(ctl);
         
-        sig=sig+1;
-        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % update information
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % add the centerline the cMat
+        sig=sig+1;    
         cMat(ctl>0)=sig;
         
         % associate the child of the corresponding cell in previous frame
         pid=propagateIdx(divisionIDX(i-numProp));
 
-        % insert the new cell
+        % compute the flow amount
         mf = Ps{i}.length;
         
+        % build the new cell
         tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
             'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
             'relaxOutCost',0,'seg',im, 'id',cellEachFrame{1}{pid}.id);
+        
+        % insert the new cell
         newCellFrame=cat(2,newCellFrame,tmp);
         
         cellEachFrame{1}{pid}.child=cat(2,sig,cellEachFrame{1}{pid}.child);
@@ -172,7 +208,6 @@ for i=1:1:numel(cellEachFrame{3})
     cellEachFrame{3}{i}.inflow=0;
     cellEachFrame{3}{i}.parent=[];
 end
-
 
 [srcCellList,tarCellList]=local_EMD(newCellFrame,cellEachFrame{3}, cMat, tarMat, Options);
 cellEachFrame{2}=srcCellList;

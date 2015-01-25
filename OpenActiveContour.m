@@ -88,8 +88,8 @@ for i=1:Options.Iterations
     % Show current contour
     if(Options.Verbose)
         myHandle=drawContours(P,i/Options.Iterations,myHandle,i);
-    else
-        disp(['iteration: ',num2str(i)]);
+   % else
+   %     disp(['iteration: ',num2str(i)]);
     end
     
     if(stopCheck(P))
