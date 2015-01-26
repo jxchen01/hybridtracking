@@ -4,16 +4,17 @@
 clc
 disp('Program Starts...');
 
-sq=5;
+sq=11;
 RawType='.png';
+fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
+% '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
 
 %%%%% load segmentation results %%%%%%
-S=load(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',num2str(sq),'/seg.mat']);
+S=load([fpath,'sq',num2str(sq),'/seg.mat']);
 cellEachFrame = S.cellEachFrame;
 matEachFrame = S.matEachFrame;
 
-BW = im2bw(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq'...
-    ,num2str(sq),'/manual.png']));
+BW = im2bw(imread([fpath,'sq',num2str(sq),'/manual.png']));
 
 %%%%% parameters %%%%%
 [xdim,ydim]=size(BW);
@@ -25,6 +26,7 @@ cMap = rand(1000,3).*0.9 + 0.1;
 cMap(1,:)=[0,0,0];
 
 % load manual segmentation of first frame
+BW=regionRefine(BW);
 cc=bwconncomp(BW);
 bwLabel=labelmatrix(cc);
 ctlImg=bwmorph(BW,'thin',Inf);
@@ -59,17 +61,14 @@ end
 clear srcMat srcCellList tarMat tarCellList i
 
 %%%% main loop %%%
-I1=mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-    num2str(sq),'/raw/img0101',RawType]));
-I2=mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-    num2str(sq),'/raw/img0102',RawType]));
+I1=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0101',RawType]));
+I2=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0102',RawType]));
 
 for frameIdx = 2:1:numFrame-numFrameAhead
     disp(['processing frame: ',num2str(frameIdx)]);
     
     % build the image of interest
-    I3 = mat2gray(imread(['/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/sq',...
-            num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
+    I3 = mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
     I = mat2gray((I1+I2+I3)./3);
     
     idxConsider=frameIdx-1:1:frameIdx+numFrameAhead;
@@ -98,7 +97,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     %DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
     drawColorRegions(cellFrame{2}, [xdim,ydim], frameIdx ,cMap);
     
-    saveas(gcf,['./track/img0',num2str(frameIdx+100),'.png'],'png');
+    saveas(gcf,[fpath,'sq',num2str(sq),'/track/img0',num2str(frameIdx+100),'.png'],'png');
     
     matEachFrame{frameIdx}.Mat = cMat;
     cellEachFrame(1,frameIdx-1:1:frameIdx+1)=cellFrame(1,1:3);
