@@ -16,7 +16,6 @@ function Ps=InterpolateContourPoints2D(Ps,nPoints,sz)
 
 
 for i=1:1:numel(Ps)
-
     Ps{i}.pts = interpolateSingleContour(Ps{i}.pts,sz, nPoints);
 end
 

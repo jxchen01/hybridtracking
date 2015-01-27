@@ -23,14 +23,14 @@ function [P, divisionIDX]=OpenActiveContour(I,P,BMap0,Options)
 
 % options (Snake)
 %  Options.Delta : stretching force due to length prior, default 1
-%  Options.Kappa : Weight of repelling force, default 0.2
+%  Options.Kappa : Weight of repelling force, default 0.25
 
 % Function is written by D.Kroon University of Twente (July 2010)
 % Modified by Jianxu Chen (University of Notre Dame) at Jan 2015
 
 % Process inputs
 defaultoptions=struct('Verbose',false,'nPoints',20,'Alpha',0.2,'Beta',0.0,'Delta',1,...
-    'Gamma',1,'Kappa',0.2,'Iterations',10);
+    'Gamma',1,'Kappa',0.25,'Iterations',10);
 
 if(~exist('Options','var')), 
     Options=defaultoptions; 
@@ -57,6 +57,7 @@ S=SnakeInternalForceMatrix2D(Options.nPoints,Options.Alpha,Options.Beta,Options.
 
 % Make an uniform sampled contour description
 P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
+
 P=cellInfoUpdate(P,I);
 if(Options.Verbose)
     figure(2), imshow(I), hold on; myHandle=drawContours(P,0,[],0);
