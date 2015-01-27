@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 %%%%%%%%%%%%%%%%%%% main entry for hybrid tracking %%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% Created by Jianxu Chen (University of Notre Dame) %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%% Date: Jan. 2015 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,7 +32,6 @@ maxID = numel(P); % hold the maximum of occupied index value
 clear cc bwLabel ctlImg BW 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% initialize the data for main loop %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,74 +52,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 I1=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0101',RawType]));
 I2=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0102',RawType]));
-=======
-% %%%%%%%%%%%% main entry for hybrid tracking %%%%%%%%%%%%%
-% %%% Created by Jianxu Chen (University of Notre Dame) %%%
-% %%%%%%%%%%%%%%%%%%% Date: Jan. 2015 %%%%%%%%%%%%%%%%%%%%%
-% clc
-% disp('Program Starts...');
-% 
-% sq=11;
-% RawType='.png';
-% fpath = 'C:\Users\jchen16\Dropbox\Private\miccai2015\';
-% %fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
-% % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
-% 
-% %%%%% load segmentation results %%%%%%
-% S=load([fpath,'sq',num2str(sq),'\seg.mat']);
-% cellEachFrame = S.cellEachFrame;
-% matEachFrame = S.matEachFrame;
-% 
-% BW = im2bw(imread([fpath,'sq',num2str(sq),'\manual.png']));
-% 
-% %%%%% parameters %%%%%
-% [xdim,ydim]=size(BW);
-% Options=setParameters(xdim,ydim);
-% numFrameAhead = Options.numFrameAhead;
-% numFrame = length(cellEachFrame);
-% %numFrame = 6;
-% cMap = rand(2000,3).*0.9 + 0.1;
-% cMap(1,:)=[0,0,0];
-% 
-% % load manual segmentation of first frame
-% BW=regionRefine(BW);
-% cc=bwconncomp(BW);
-% bwLabel=labelmatrix(cc);
-% ctlImg=bwmorph(BW,'thin',Inf);
-% [P, cMat]=ExtractCells(bwLabel,ctlImg,Options);
-% cellEachFrame{1}=P;
-% matEachFrame{1}.Mat = cMat;
-% 
-% maxID = numel(P);
-% 
-% clear cc bwLabel P cMat ctlImg BW S
-% 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%% low-level association (frame-by-frame matching) %%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% disp('low-level starts ...');
-% srcCellList=cellEachFrame{1};
-% srcMat=matEachFrame{1}.Mat;
-% for i=2:1:numFrame
-%     disp(['Frame: ',num2str(i)])
-%     tarCellList=cellEachFrame{i};
-%     tarMat=matEachFrame{i}.Mat;
-%     [srcCellList,tarCellList]=local_EMD(srcCellList,tarCellList, srcMat, tarMat,Options);
-%     
-%     cellEachFrame{i-1}=srcCellList;
-%     if(i==numFrame)
-%         cellEachFrame{i}=tarCellList;
-%     end
-%     srcCellList=tarCellList;
-%     srcMat=tarMat; 
-% end
-% 
-% clear srcMat srcCellList tarMat tarCellList i
-
-%%%% main loop %%%
-I1=mat2gray(imread([fpath,'sq',num2str(sq),'\raw\img0101',RawType]));
-I2=mat2gray(imread([fpath,'sq',num2str(sq),'\raw\img0102',RawType]));
->>>>>>> refs/remotes/origin/master
 
 for frameIdx = 2:1:numFrame-numFrameAhead
     disp(['processing frame: ',num2str(frameIdx)]);
@@ -141,7 +71,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     clear S
     
     % build the image of interest
-    I3 = mat2gray(imread([fpath,'sq',num2str(sq),'\raw\img0',num2str(100+frameIdx+1),RawType]));    
+    I3 = mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
     I = mat2gray((I1+I2+I3)./3);
     
     % build correspondence within a period of time

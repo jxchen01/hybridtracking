@@ -12,17 +12,20 @@ BMap = zeros(sz);
 for i=1:1:numel(cFrame);
     
     if(isempty(cFrame{i}.parent)) 
-        %if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2), Options.BoundThresh) && confirmEntry(cellEachFrame(1,2:1:end),i))
-        if(confirmEntry(cellEachFrame(1,2:1:end),i))
-            % confirmed entering cell or re-appearing cell
+       
+        if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2), Options.BoundThresh)...
+                && confirmEntry(cellEachFrame(1,2:1:end),i,1))
+            
+            % confirmed entering cell 
             newCellFrame = cat(2,newCellFrame, cFrame{i});
-            if(isCloseToBoundary(cFrame{i}.ctl,sz(1),sz(2), Options.BoundThresh))
-                % only confirmed entering cell can contribute to the BMap
-                BMap = BMap | cFrame{i}.seg; 
-                newCellFrame{end}.case = 2; % entering
-            else
-                newCellFrame{end}.case = -1; % re-appearing
-            end
+            newCellFrame{end}.case = 2; % entering
+            
+            % only confirmed entering cell can contribute to the BMap
+            BMap = BMap | cFrame{i}.seg; 
+        elseif(confirmEntry(cellEachFrame(1,2:1:end),i,2))          
+            % confirmed re-appearing cell 
+            newCellFrame = cat(2,newCellFrame, cFrame{i});
+            newCellFrame{end}.case = -1; % re-appearing         
         end
     else
         pidx = cFrame{i}.parent;
