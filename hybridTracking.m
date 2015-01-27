@@ -1,80 +1,82 @@
-%%%%%%%%%%%% main entry for hybrid tracking %%%%%%%%%%%%%
-%%% Created by Jianxu Chen (University of Notre Dame) %%%
-%%%%%%%%%%%%%%%%%%% Date: Jan. 2015 %%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% main entry for hybrid tracking %%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% Created by Jianxu Chen (University of Notre Dame) %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%% Date: Jan. 2015 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc
 disp('Program Starts...');
 
-sq=11;
+% data parameters
+sq=1;
+numFrame=51;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
 
-%%%%% load segmentation results %%%%%%
-S=load([fpath,'sq',num2str(sq),'/seg.mat']);
-cellEachFrame = S.cellEachFrame;
-matEachFrame = S.matEachFrame;
-
+% load manual segmentation and parameters
 BW = im2bw(imread([fpath,'sq',num2str(sq),'/manual.png']));
 
-%%%%% parameters %%%%%
 [xdim,ydim]=size(BW);
 Options=setParameters(xdim,ydim);
+
 numFrameAhead = Options.numFrameAhead;
-numFrame = length(cellEachFrame);
-%numFrame = 6;
-cMap = rand(1000,3).*0.9 + 0.1;
+cMap = rand(1000,3).*0.9 + 0.1; % displaying the trackig results
 cMap(1,:)=[0,0,0];
 
-% load manual segmentation of first frame
 BW=regionRefine(BW);
 cc=bwconncomp(BW);
 bwLabel=labelmatrix(cc);
 ctlImg=bwmorph(BW,'thin',Inf);
 [P, cMat]=ExtractCells(bwLabel,ctlImg,Options);
-cellEachFrame{1}=P;
-matEachFrame{1}.Mat = cMat;
 
-maxID = numel(P);
+maxID = numel(P); % hold the maximum of occupied index value
 
-clear cc bwLabel P cMat ctlImg BW S
+clear cc bwLabel ctlImg BW 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%% low-level association (frame-by-frame matching) %%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp('low-level starts ...');
-srcCellList=cellEachFrame{1};
-srcMat=matEachFrame{1}.Mat;
-for i=2:1:numFrame
-    disp(['Frame: ',num2str(i)])
-    tarCellList=cellEachFrame{i};
-    tarMat=matEachFrame{i}.Mat;
-    [srcCellList,tarCellList]=local_EMD(srcCellList,tarCellList, srcMat, tarMat,Options);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% initialize the data for main loop %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cellBlock=cell(1,numFrameAhead+2);
+matBlock =cell(1,numFrameAhead+2);
+cellBlock{1}=P;
+matBlock{1}=struct('Mat',cMat);
+for i=2:1+numFrameAhead
+    S=load([fpath,'sq',num2str(sq),'/seg_data/seg0',num2str(100+i),'.mat']);
+    matBlock{i}=S.matFrame;
     
-    cellEachFrame{i-1}=srcCellList;
-    if(i==numFrame)
-        cellEachFrame{i}=tarCellList;
-    end
-    srcCellList=tarCellList;
-    srcMat=tarMat; 
+    [cellBlock{i-1},cellBlock{i}]=local_EMD(cellBlock{i-1},S.cellFrame,...
+        matBlock{i-1}.Mat,matBlock{i}.Mat,Options);
 end
 
-clear srcMat srcCellList tarMat tarCellList i
-
-%%%% main loop %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%     main loop     %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 I1=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0101',RawType]));
 I2=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0102',RawType]));
 
 for frameIdx = 2:1:numFrame-numFrameAhead
     disp(['processing frame: ',num2str(frameIdx)]);
     
+    if(frameIdx==14)
+        keyboard;
+    end
+    
+    % add the new Frame, index = frameIdx + numFrameAhead
+    indNew = frameIdx + numFrameAhead;
+    S=load([fpath,'sq',num2str(sq),'/seg_data/seg0',num2str(100+indNew),'.mat']);
+    matBlock{numFrameAhead+2} = S.matFrame;
+    [cellBlock{numFrameAhead+1},cellBlock{numFrameAhead+2}]=...
+        local_EMD(cellBlock{numFrameAhead+1},S.cellFrame,...
+        matBlock{numFrameAhead+1}.Mat,matBlock{numFrameAhead+2}.Mat,Options);
+    
+    clear S
+    
     % build the image of interest
     I3 = mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
     I = mat2gray((I1+I2+I3)./3);
     
-    idxConsider=frameIdx-1:1:frameIdx+numFrameAhead;
-    
     % build correspondence within a period of time
-    cellSemiGlobal = Global_EMD(cellEachFrame(1,idxConsider),matEachFrame(1,idxConsider), Options);
+    cellSemiGlobal = Global_EMD(cellBlock, matBlock, Options);
     
     % extract:
     %   (1) confirmed segmentation; 
@@ -90,8 +92,8 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     end
     
     % update
-    [cellFrame, cMat, maxID]=updateCellEachFrame(cellEachFrame(1,idxConsider),...
-    newCellFrame, newPs, propagateIdx, matEachFrame{frameIdx+1}.Mat ,...
+    [cellFrame, cMat, maxID]=updateCellEachFrame(cellBlock,...
+    newCellFrame, newPs, propagateIdx, matBlock{3}.Mat ,...
     [xdim,ydim], divisionIDX, maxID, Options);
 
     %DrawSegmentedArea2D(cellFrame{2},mat2gray(I),2);
@@ -99,8 +101,18 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     
     saveas(gcf,[fpath,'sq',num2str(sq),'/track/img0',num2str(frameIdx+100),'.png'],'png');
     
-    matEachFrame{frameIdx}.Mat = cMat;
-    cellEachFrame(1,frameIdx-1:1:frameIdx+1)=cellFrame(1,1:3);
+    % write the first frame in the block to disk
+    cellFrameTracked=cellFrame{1};
+    save([fpath,'sq',num2str(sq),'/track_data/seg0',num2str(100+frameIdx),'.mat'],'cellFrameTracked');
+    clear cellFrameTracked
+
+    % update the block
+    cellBlock{1}=cellFrame{2}; matBlock{1}.Mat = cMat;
+    cellBlock{2}=cellFrame{3}; matBlock{2} = matBlock{3};
+    for i=3:numFrameAhead+1
+        cellBlock{i}=cellBlock{i+1};
+        matBlock{i}=matBlock{i+1};
+    end
     
     I1=I2;
     I2=I3;
