@@ -6,6 +6,10 @@ function flag=confirmEntry(cellEachFrame, idx, checkType)
 frameIdxBase=1;
 flag=false;
 
+if(cellEachFrame{1}{idx}.length<5)
+    return
+end
+
 numFrame = numel(cellEachFrame);
 
 cid = cellEachFrame{1}{idx}.child;

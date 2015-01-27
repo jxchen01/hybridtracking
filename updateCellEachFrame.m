@@ -1,37 +1,11 @@
-function [cellEachFrame,cMat,maxID]=updateCellEachFrame(cellEachFrame,newCellFrame,Ps,propagateIdx,tarMat,sz,divisionIDX,maxID,Options)
+function [cellEachFrame,cMat,maxID]=updateCellEachFrame(cellEachFrame,oldCellFrame,Ps,propagateIdx,tarMat,sz,divisionIDX,maxID,Options)
 
 cMat = zeros(sz);
-
-%%% update confirmed cells %%%
-sig=numel(newCellFrame);
-for i=1:1:sig
-    
-    pp=newCellFrame{i}.ctl;
-    idx=sub2ind(sz,pp(:,1),pp(:,2));
-    cMat(idx)=i;
-    
-    pid=newCellFrame{i}.parent;
-    
-    if(isempty(pid)) % entering cell
-        maxID = maxID + 1;
-        newCellFrame{i}=struct('length',newCellFrame{i}.length,'ctl',pp,'child',[],...
-        'parent',[],'candi',[],'inflow',newCellFrame{i}.length,'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',newCellFrame{i}.seg,'id',maxID);
-    else
-        newCellFrame{i}=struct('length',newCellFrame{i}.length,'ctl',pp,'child',[],...
-        'parent',pid,'candi',[],'inflow',min([cellEachFrame{1}{pid}.length,...
-        newCellFrame{i}.length]),'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',newCellFrame{i}.seg, 'id', cellEachFrame{1}{pid}.id);
-    end
-   
-end
-
-clear idx pp i
-
+newCellFrame=cell(1,0);
 %%% update evolved cells %%%
-%skipIdx = [];
 numProp = numel(propagateIdx);
-
+evolvedMap = zeros(sz);
+sig=0;
 for i=1:1:numProp
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -72,6 +46,8 @@ for i=1:1:numProp
     
     se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
     im = im | imdilate(tmpHead,se);
+    
+    evolvedMap = evolvedMap | im;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % convert contour control points to centerline
@@ -202,6 +178,44 @@ if(~isempty(divisionIDX))
         cellEachFrame{1}{pid}.outflow=min([cellEachFrame{1}{pid}.length, mf+cellEachFrame{1}{pid}.outflow]);
     end
 end
+
+%%% update confirmed cells %%%
+for i=1:1:numel(oldCellFrame)
+    if(~isfield(oldCellFrame{i},'case'))
+        keyboard;
+    end
+    if(oldCellFrame{i}.case<0) % re-appearing cell
+        tmpSeg= oldCellFrame{i}.seg;
+        if(nnz(tmpSeg & evolvedMap)>3)
+            continue;
+        end
+    end
+    
+    sig=sig+1;
+    
+    pp=oldCellFrame{i}.ctl;
+    idx=sub2ind(sz,pp(:,1),pp(:,2));
+    cMat(idx)=sig;
+    
+    pid=oldCellFrame{i}.parent;
+    
+    if(isempty(pid)) % entering cell or re-appearing
+        maxID = maxID + 1;
+        tmp=struct('length',oldCellFrame{i}.length,'ctl',pp,'child',[],...
+        'parent',[],'candi',[],'inflow',oldCellFrame{i}.length,'outflow',0,'relaxinCost',0,...
+        'relaxOutCost',0,'seg',oldCellFrame{i}.seg,'id',maxID);
+    else
+        tmp=struct('length',oldCellFrame{i}.length,'ctl',pp,'child',[],...
+        'parent',pid,'candi',[],'inflow',min([cellEachFrame{1}{pid}.length,...
+        oldCellFrame{i}.length]),'outflow',0,'relaxinCost',0,...
+        'relaxOutCost',0,'seg',oldCellFrame{i}.seg, 'id', cellEachFrame{1}{pid}.id);
+    end
+    
+    newCellFrame = cat(2, newCellFrame,tmp);   
+end
+
+clear idx pp i
+
 
 %%% update matching between 2 and 3
 for i=1:1:numel(cellEachFrame{3})
