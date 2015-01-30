@@ -53,7 +53,7 @@ elseif(checkType==2)
     cellID = uint16((cid - frameID)*1000);
     if(cellID==0)
         frameID = 2;
-        cellID = uint16(cid(kk));
+        cellID = uint16(cid);
     else
         frameID = frameID-frameIdxBase;
     end
