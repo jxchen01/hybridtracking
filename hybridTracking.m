@@ -5,8 +5,8 @@ clc
 disp('Program Starts...');
 
 % data parameters
-sq=1;
-numFrame=51;
+sq=41;
+numFrame=9;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
@@ -56,9 +56,9 @@ I2=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0102',RawType]));
 for frameIdx = 2:1:numFrame-numFrameAhead
     disp(['processing frame: ',num2str(frameIdx)]);
     
-    if(frameIdx==14)
-        keyboard;
-    end
+%     if(frameIdx==14)
+%         keyboard;
+%     end
     
     % add the new Frame, index = frameIdx + numFrameAhead
     indNew = frameIdx + numFrameAhead;
@@ -72,7 +72,8 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     
     % build the image of interest
     I3 = mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0',num2str(100+frameIdx+1),RawType]));    
-    I = mat2gray((I1+I2+I3)./3);
+    %I = mat2gray((I1+I2+I3)./3);
+    I=I2;
     
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellBlock, matBlock, Options);

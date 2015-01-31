@@ -232,9 +232,14 @@ for rx1=1:halfROIs:dimx
                 if(tf>0)
                     indInTar=tmpNbr(j);
                 end
-                if(distMat(indInSrc,indInTar)>1)
-                    continue;
-                end
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %%%%%%%%%%%%%%%% What ??? %%%%%%%%%%%%%%%%%%%%
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                 if(distMat(indInSrc,indInTar)>1)
+%                     continue;
+%                 end
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 if(tf>bodyRatio*srcCellList{indInSrc}.length || tf>bodyRatio*tarCellList{indInTar}.length)
                     matchingMat(indInSrc,indInTar)=tf;
                 end
