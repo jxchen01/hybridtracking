@@ -55,8 +55,7 @@ for frameK = 1:1:numFrame-1
           
         % search in layer K+1
         tmpCandi=setdiff(tmpCell.candi,tmpCell.child);
-        numCandi1 = numel(tmpCandi);
-        for j=1:1:numCandi1
+        for j=1:1:numel(tmpCandi)
             if(cellFrame{frameK+1}{tmpCandi(j)}.inflow >= bodyRatio*cellFrame{frameK+1}{tmpCandi(j)}.length)
                 continue;
             end
@@ -68,69 +67,53 @@ for frameK = 1:1:numFrame-1
             tmpD = ComputeDist(tmpCell.ctl,tmpCell.length, cellFrame{frameK+1}{tmpCandi(j)}.ctl,cellFrame{frameK+1}{tmpCandi(j)}.length,0);
             if(tmpD<500)
                 numFlowEdge = numFlowEdge + 1;
-                flowInfo{numFlowEdge} = struct('head',[frameK,i], 'tail',[frameK+1,tmpCandi(j)],'edgeCost',tmpD,'ub',flowCap,'outConstIdx', outNum);
-%                 if(frameK==9 && tmpCandi(j)==10)
-%                     disp([9,i,10,10,numFlowEdge]);
-%                    % keyboard
-%                 end
-%                if(numFlowEdge==1259)
-%                    disp([frameK,i,frameK+1,tmpCandi(j)]);
-%                    disp(tmpD)
-%                end
+                flowInfo{numFlowEdge} = struct('head',[frameK,i],...
+                    'tail',[frameK+1,tmpCandi(j)],'edgeCost',tmpD,...
+                    'ub',flowCap,'outConstIdx', outNum);
             end
         end
         
-        % search in layer k+2
+        % search in layer k+2 ... 
         for kk=2:1:searchDepth
             idxFM=frameK+kk;
             if(idxFM>numFrame)
                 break;
             end
-            idx=kk-1;
+            tar_idx=kk-1;
             tmpSingle=(srcMat==i);
-            tmpSingle=imdilate(tmpSingle,se{idx});
-            tmpAND = tmpSingle.*tarMat(:,:,idx);
+            tmpSingle=imdilate(tmpSingle,se{tar_idx});
+            tmpAND = tmpSingle.*tarMat(:,:,tar_idx);
             tmpCandi = unique(nonzeros(tmpAND));
-            numCandi = length(tmpCandi);
             
-            for j=1:1:numCandi
+            for j=1:1:length(tmpCandi)
                 if(cellFrame{idxFM}{tmpCandi(j)}.inflow >= bodyRatio*cellFrame{idxFM}{tmpCandi(j)}.length )
                     continue;
                 end
                 
+                 % if reach here, it means a potential flow is found
                 flowCap = min([tmpCell.length-tmpCell.outflow , cellFrame{idxFM}{tmpCandi(j)}.length-cellFrame{idxFM}{tmpCandi(j)}.inflow]);                
-                
-                % if reach here, it means a potential flow is found
+
                 tmpD = ComputeDist(tmpCell.ctl,tmpCell.length, cellFrame{idxFM}{tmpCandi(j)}.ctl,cellFrame{idxFM}{tmpCandi(j)}.length,0);
                 if(tmpD<500)
                     numFlowEdge = numFlowEdge + 1;
-                    flowInfo{numFlowEdge} = struct('head',[frameK,i], 'tail',[idxFM,tmpCandi(j)],'edgeCost',tmpD,'ub',flowCap,'outConstIdx', outNum);
-%                     if(idxFM==10 && tmpCandi(j)==10)
-%                         disp([frameK,i,10,10,numFlowEdge]);
-%                     end
-%                    if(numFlowEdge==1259)
-%                        disp([frameK,i,idxFM,tmpCandi(j)]);
-%                        disp(tmpD)
-%                    end
+                    flowInfo{numFlowEdge} = struct('head',[frameK,i], ...
+                        'tail',[idxFM,tmpCandi(j)],'edgeCost',tmpD,...
+                        'ub',flowCap,'outConstIdx', outNum);
                 end
             end
         end
         
         % add a flow to sink node
-        numNew=tmpCell.length-tmpCell.outflow;
         tmpCost=tmpCell.relaxOutCost;
         if(tmpCost<0)
             tmpCost=-tmpCost;
-        elseif(tmpCost>0)
-            %tmpCost=tmpCost;
-        else
+        elseif(tmpCost==0)
             keyboard
         end
         numFlowEdge = numFlowEdge + 1;
-        flowInfo{numFlowEdge} = struct('head',[frameK,i], 'tail', [numFrame+1, 0],'edgeCost',tmpCost,'ub',numNew,'outConstIdx', outNum);
-        
+        flowInfo{numFlowEdge} = struct('head',[frameK,i], 'tail', [numFrame+1, 0],...
+            'edgeCost',tmpCost,'ub',tmpCell.length-tmpCell.outflow,'outConstIdx', outNum);      
     end
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%% check inflow %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,31 +123,22 @@ Sinf=0;
 
 for frameK=2:numFrame
     srcCellFrame = cellFrame{frameK};
-    tmpCellNum = numel(srcCellFrame);
-    for i=1:1:tmpCellNum
+    for i=1:1:numel(srcCellFrame)
         tmpCell = srcCellFrame{i};
-%         if(frameK==2 && i==10)
-%             keyboard
-%         end
         if(tmpCell.inflow >= bodyRatio*tmpCell.length )
             continue;
         end
         
         % add a flow from source node
-        numNew = tmpCell.length-tmpCell.inflow;
         tmpCost=tmpCell.relaxInCost;
         if(tmpCost<0)
             tmpCost=-tmpCost;
-        else
-            %tmpCost=tmpCost;
         end
         
         numFlowEdge = numFlowEdge + 1;
-        flowInfo{numFlowEdge} = struct('head',[0,0], 'tail', [frameK, i],'edgeCost',tmpCost,'ub',numNew,'outConstIdx',0);
+        flowInfo{numFlowEdge} = struct('head',[0,0], 'tail', [frameK, i],...
+            'edgeCost',tmpCost,'ub',tmpCell.length-tmpCell.inflow,'outConstIdx',0);
         
-%        if(frameK==10 && i==10)
-%            disp([0,0,numFlowEdge]);
-%        end
         flowConst = cat(1,flowConst,(tmpCell.length-tmpCell.inflow));
         Sinf=Sinf+(tmpCell.length-tmpCell.inflow);
         inNum = inNum+1;
@@ -215,16 +189,13 @@ if(exitflag~=1)
 end
 
 for i=1:1:numFlowEdge
-    if(xval(i)>0.00001)
-        
+    if(xval(i)>0.1)       
         tmpHead=flowInfo{i}.head;
-        tmpTail=flowInfo{i}.tail;
-            
-        if(tmpHead(1)~=0 && tmpTail(1)~=numFrame+1)
-            
+        tmpTail=flowInfo{i}.tail;          
+        if(tmpHead(1)~=0 && tmpTail(1)~=numFrame+1)         
             if(xval(i)>bodyRatio*(cellFrame{tmpHead(1)}{tmpHead(2)}.length-cellFrame{tmpHead(1)}{tmpHead(2)}.outflow) || ...
                     xval(i)>bodyRatio*(cellFrame{tmpTail(1)}{tmpTail(2)}.length-cellFrame{tmpTail(1)}{tmpTail(2)}.inflow))
-            
+       
                 tmp=cellFrame{tmpHead(1)}{tmpHead(2)}.child;
                 tmp2=cellFrame{tmpTail(1)}{tmpTail(2)}.parent;
                 if(tmpTail(1)==tmpHead(1)+1)
@@ -235,19 +206,13 @@ for i=1:1:numFlowEdge
                     tmp2=cat(2,tmp2,tmpHead(1)+tmpHead(2)/1000);
                 end
                 cellFrame{tmpHead(1)}{tmpHead(2)}.child=tmp;
-                %cellFrame{tmpHead(1)}{tmpHead(2)}.outflow = cellFrame{tmpHead(1)}{tmpHead(2)}.outflow + xval(i);
+                cellFrame{tmpHead(1)}{tmpHead(2)}.outflow = cellFrame{tmpHead(1)}{tmpHead(2)}.outflow + xval(i);
+                cellFrame{tmpHead(1)}{tmpHead(2)}.cumFlow = cat(2,...
+                    cellFrame{tmpHead(1)}{tmpHead(2)}.cumFlow, xval(i));
                 
                 cellFrame{tmpTail(1)}{tmpTail(2)}.parent = tmp2;
-                %cellFrame{tmpTail(1)}{tmpTail(2)}.inflow = cellFrame{tmpTail(1)}{tmpTail(2)}.inflow + xval(i);
+                cellFrame{tmpTail(1)}{tmpTail(2)}.inflow = cellFrame{tmpTail(1)}{tmpTail(2)}.inflow + xval(i);
             end
-        %elseif(tmpHead(1)==0)
-        %    cellFrame{tmpTail(1)}{tmpTail(2)}.parent=0;
-        %else
-        %    cellFrame{tmpHead(1)}{tmpHead(2)}.child=0;
         end
     end
 end
-
-clear tmp tmpVar tmpHead tmpTail i j kk
-
-%save('fullResult.mat');

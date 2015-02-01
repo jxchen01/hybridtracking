@@ -1,14 +1,72 @@
-function [newPs, skipIdx]=contourPropagate(Ps,I, Options)
+function [newPs, skipIdx]=contourPropagate(cellEachFrame, idxList,I, Options)
 
 sz=size(I);
 nPoints = Options.nPoints;
-%lengthCanSkip = Options.lengthCanSkip;
+Ps=cellEachFrame{1}(idxList);
 
 skipIdx=[];
 
 for i=1:1:numel(Ps)
     
-    P=Ps{i}.ctl;
+    P=Ps{i}.ctl; % pixel-level accuracy (all connected grid points)
+    npts = size(P,1);
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%% calculate the moving direction %%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    cid = Ps{i}.child;
+    if(numel(cid)>0)
+        % get corresponding cells in future frames
+        numChild = numel(cid);
+        remainFlow=Ps{i}.outflow;
+        flowCap = Ps{i}.cumFlow;
+        morphCell = cell(1,numChild);
+        for kk=1:1:numChild
+            frameID = floor(cid(kk));
+            cellID = uint16((cid(kk) - frameID)*1000);
+            if(cellID==0)
+                frameID = 2;
+                cellID = uint16(cid(kk));
+            else
+                frameID = frameID-frameIdxBase;
+            end
+            morphCell{kk}=cellEachFrame{frameID}{cellID}.ctl;
+        end
+        
+        % get normal and tangential vectors
+        nv_all=GetContourNormals2D(P);
+        nv_ave = sum(nv_all,1);
+        nv_ave = nv_ave./(norm(nv_ave));  % normal vector (average)
+        tv_ave = [-nv_ave(2), nv_ave(2)]; % tangential vector (average)
+        
+        % loop to find best moving direction
+        maxP = [];
+        minDist = 1000000;
+        for ni=-Options.maxNormMove:1:Options.maxNormMove
+            vi = ni*nv_ave;
+            for ti=-Options.maxTangMove:1:Options.maxTangMove
+                vi = round( vi + ti*tv_ave );
+                vi_mat = repmat(vi,npts,1);
+                Pm=P+vi_mat;
+                
+                % clamp to image
+                Pm(Pm(:,1)>sz(1),1)=sz(1);
+                Pm(Pm(:,1)<1,1)=1;
+                Pm(Pm(:,2)>sz(2),2)=sz(2);
+                Pm(Pm(:,2)<1,2)=1;
+                
+                md = 0;
+                for kk=1:1:numChild
+                    md = md + morphDist(Pm, morphCell{kk}, flowCap(kk));
+                end
+                if(md<minDist)
+                    minDist = md;
+                    maxP = Pm;
+                end
+            end
+        end    
+        P = maxP;
+    end
     
     % Calculate distance between points
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];

@@ -75,7 +75,7 @@ while(~isempty(ep))
     
     cellList{currentCellNum}=struct('length',pixNum,'ctl',pts,'child',[],...
         'parent',[],'candi',[],'inflow',0,'outflow',0,'relaxinCost',0,...
-        'relaxOutCost',0,'seg',seg_region,'id',currentCellNum);
+        'relaxOutCost',0,'seg',seg_region,'id',currentCellNum,'cumFlow',[]);
     
     if(~isCloseToBoundary(pts,xdim,ydim, Options.BoundThresh))
         cellList{currentCellNum}.copyLength = pixNum;
