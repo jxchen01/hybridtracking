@@ -18,7 +18,6 @@ for i=1:1:numel(Ps)
     if(numel(cid)>0)
         % get corresponding cells in future frames
         numChild = numel(cid);
-        remainFlow=Ps{i}.outflow;
         flowCap = Ps{i}.cumFlow;
         morphCell = cell(1,numChild);
         for kk=1:1:numChild
@@ -27,10 +26,8 @@ for i=1:1:numel(Ps)
             if(cellID==0)
                 frameID = 2;
                 cellID = uint16(cid(kk));
-            else
-                frameID = frameID-frameIdxBase;
             end
-            morphCell{kk}=cellEachFrame{frameID}{cellID}.ctl;
+            morphCell{kk}=struct('ctl',cellEachFrame{frameID}{cellID}.ctl,'time',frameID-1);
         end
         
         % get normal and tangential vectors
@@ -57,7 +54,18 @@ for i=1:1:numel(Ps)
                 
                 md = 0;
                 for kk=1:1:numChild
-                    md = md + morphDist(Pm, morphCell{kk}, flowCap(kk));
+                    if(morphCell{kk}.time==1)
+                        md = md + morphDist(Pm, morphCell{kk}.ctl, flowCap(kk));
+                    else
+                        Pmm = P + vi_mat*morphCell{kk}.time;
+                        % clamp to image
+                        Pmm(Pmm(:,1)>sz(1),1)=sz(1);
+                        Pmm(Pmm(:,1)<1,1)=1;
+                        Pmm(Pmm(:,2)>sz(2),2)=sz(2);
+                        Pmm(Pmm(:,2)<1,2)=1;
+                        
+                        md = md + morphDist(Pmm, morphCell{kk}.ctl, flowCap(kk));
+                    end
                 end
                 if(md<minDist)
                     minDist = md;

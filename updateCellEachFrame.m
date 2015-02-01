@@ -22,7 +22,8 @@ for i=1:1:numProp
     
     % Case 2: If the interior intensity differ too much from that 
     %         in the last frame. (Evolution Error)
-    if(CellDist(Ps{i})>2.5 || Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
+    if(Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
+    %if(CellDist(Ps{i})>2.5 || Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
         disp('check evolution');
         continue;
     end

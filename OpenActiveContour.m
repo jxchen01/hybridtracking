@@ -136,7 +136,7 @@ if(~isempty(divisionIDX))
     for i=1:1:numNew
         BMap1(P{divisionIDX(i)}.region>0)=0;
     end
-    BMap1 = bwareaopen(BMap1,10);
+    BMap1 = bwareaopen(BMap1,50);
     
     BMap = processBMap(BMap1,Options.repelThresh);
     

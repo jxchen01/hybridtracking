@@ -199,22 +199,6 @@ for ci=1:1:numContour
         end
     end
     
-%     if(ff(1)>ff(2)) % larger means easiler to grow
-%         if(ff(1)<0)
-%             ds(1,:) = (ff(1)+2*sf).*nn(1,:);
-%         else
-%             ds(1,:) = (ff(1)+sf).*nn(1,:);
-%         end
-%         ds(2,:) = ff(2).*nn(2,:);
-%     else
-%         if(ff(2)<0)
-%             ds(2,:) = (ff(2)+2*sf).*nn(2,:);
-%         else
-%             ds(2,:) = (ff(2)+sf).*nn(2,:);
-%         end
-%         ds(1,:) = ff(1).*nn(1,:);
-%     end
-    
     ss([1,end],:) = ss([1,end],:) + ds;
 
     P = B * ss;

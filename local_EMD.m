@@ -1,7 +1,7 @@
 function [srcCellList,tarCellList]=local_EMD(srcCellList, tarCellList, srcMat, tarMat, algOptions)
 
 %%%%%%% parameters %%%%%%%
-halfROIs = algOptions.halfROIs;
+%halfROIs = algOptions.halfROIs;
 BoundThreshold = algOptions.BoundThresh;
 candiRadius=algOptions.candiRadius;
 bodyRatio=algOptions.bodyRatio;
@@ -203,9 +203,9 @@ for i=1:1:sNum
         %%%%% Do local matching conservatively %%%%%%%
         %%%%% i.e. only keep very good matching %%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %                 if(distMat(indInSrc,indInTar)>1)
-        %                     continue;
-        %                 end
+        if(distMat(i,indInTar)>3)
+            continue;
+        end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % treat positve flow as a matching, only if
