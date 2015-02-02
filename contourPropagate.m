@@ -9,72 +9,12 @@ skipIdx=[];
 for i=1:1:numel(Ps)
     
     P=Ps{i}.ctl; % pixel-level accuracy (all connected grid points)
-    npts = size(P,1);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%% calculate the moving direction %%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    cid = Ps{i}.child;
-    if(numel(cid)>0)
-        % get corresponding cells in future frames
-        numChild = numel(cid);
-        flowCap = Ps{i}.cumFlow;
-        morphCell = cell(1,numChild);
-        for kk=1:1:numChild
-            frameID = floor(cid(kk));
-            cellID = uint16((cid(kk) - frameID)*1000);
-            if(cellID==0)
-                frameID = 2;
-                cellID = uint16(cid(kk));
-            end
-            morphCell{kk}=struct('ctl',cellEachFrame{frameID}{cellID}.ctl,'time',frameID-1);
-        end
-        
-        % get normal and tangential vectors
-        nv_all=GetContourNormals2D(P);
-        nv_ave = sum(nv_all,1);
-        nv_ave = nv_ave./(norm(nv_ave));  % normal vector (average)
-        tv_ave = [-nv_ave(2), nv_ave(2)]; % tangential vector (average)
-        
-        % loop to find best moving direction
-        maxP = [];
-        minDist = 1000000;
-        for ni=-Options.maxNormMove:1:Options.maxNormMove
-            vi = ni*nv_ave;
-            for ti=-Options.maxTangMove:1:Options.maxTangMove
-                vi = round( vi + ti*tv_ave );
-                vi_mat = repmat(vi,npts,1);
-                Pm=P+vi_mat;
-                
-                % clamp to image
-                if(any(Pm(:,1)>sz(1)) || any(Pm(:,1)<1) || any(Pm(:,2)>sz(2)) || any(Pm(:,2)<1) )
-                    continue;
-                end
-                
-                md = 0;
-                for kk=1:1:numChild
-                    if(morphCell{kk}.time==1)
-                        md = md + morphDist(Pm, morphCell{kk}.ctl, flowCap(kk));
-                    else
-                        Pmm = P + vi_mat*morphCell{kk}.time;
-                        % didn't clamp to image
-                        % out of bound index has no impact on morphDist 
-                        
-                        md = md + morphDist(Pmm, morphCell{kk}.ctl, flowCap(kk));
-                    end
-                end
-                if(md<minDist)
-                    minDist = md;
-                    maxP = Pm;
-                end
-            end
-        end    
-        P = maxP;
-    end
-    
-    % Calculate distance between points
+    % keep record of last cell and decide shrinkrate
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
     LastLength = dis(end);
+    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
+    P0=P;
     
     shrinkRate = Options.ShrinkPixelNum;
     if(LastLength<=2*shrinkRate+3)
@@ -92,8 +32,46 @@ for i=1:1:numel(Ps)
         LastLength = Ps{i}.dangerLength;
     end
     
-    % compute cell thichness
-    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%% calculate the moving direction %%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    cid = Ps{i}.child;
+    if(numel(cid)>0)
+        % get corresponding cells in future frames
+        cellNext=[];
+        cellFuture=[];
+        cf=Ps{i}.cumFlow;
+        for kk=1:1:numel(cid)
+            if(abs(cid(kk) - round(cid(kk)))<1e-8)
+                cellNext=cat(2,cellNext,cid(kk));
+            else
+                cellFuture = cat(1,cellFuture,[floor(cid(kk)), uint16((cid(kk) - floor(cid(kk)))*1000), cf(kk)]);
+            end
+        end
+        
+        if(~isempty(cellNext))
+            if(numel(cellNext)==1)
+                P=cellEachFrame{2}{cellNext}.ctl;
+            else
+                P=mergeCells(cellEachFrame{2}(cellNext));
+            end
+        else
+            [mf,midx]=max(cellFuture(:,3));
+            %P = cellMorphing(P, cellEachFrame{cellFuture(midx,1)}{cellFuture(midx,2)}.ctl,...
+            %    mf, cellFuture(midx,1)-1);
+            clear mf midx
+        end
+        
+        clear cellNext cellFuture cf kk
+    end
+    
+    %%%%%%
+    % Note: P has been updated
+    %%%%%%
+    
+    % Calculate distance between points
+    dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
 
     % Resample to make uniform points
     K=zeros(nPoints,2);
@@ -121,7 +99,9 @@ for i=1:1:numel(Ps)
 
     Ps{i}=struct('pts',K,'thickness',t,'length',disK(end),'targetLength',LastLength,...
     'strip1',R1,'strip2',R2,'region',SingleContour,'intensity',interiorIntensity,...
-    'normvec',NV,'LastFrameIntensity',interiorIntensity,'LastFramePts',P);
+    'normvec',NV,'LastFrameIntensity',interiorIntensity,'LastFramePts',P0);
+    % Note: 'LastFrameIntensity' is actually the intensity before evolution
+    % in current frame
 
     clear O len K P dis t
 end
