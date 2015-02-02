@@ -1,5 +1,5 @@
 function dist=ComputeDist(cellA,lenA, cellB,lenB,debug)
-distThresh=30; % caution: not divThresh
+distThresh=50; % caution: not divThresh
 %distOffset=0.01;
 %coeff=(pi/2-pi/25)/(1-divThresh);
 

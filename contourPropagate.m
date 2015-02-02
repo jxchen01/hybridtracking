@@ -47,10 +47,9 @@ for i=1:1:numel(Ps)
                 Pm=P+vi_mat;
                 
                 % clamp to image
-                Pm(Pm(:,1)>sz(1),1)=sz(1);
-                Pm(Pm(:,1)<1,1)=1;
-                Pm(Pm(:,2)>sz(2),2)=sz(2);
-                Pm(Pm(:,2)<1,2)=1;
+                if(any(Pm(:,1)>sz(1)) || any(Pm(:,1)<1) || any(Pm(:,2)>sz(2)) || any(Pm(:,2)<1) )
+                    continue;
+                end
                 
                 md = 0;
                 for kk=1:1:numChild
@@ -58,11 +57,8 @@ for i=1:1:numel(Ps)
                         md = md + morphDist(Pm, morphCell{kk}.ctl, flowCap(kk));
                     else
                         Pmm = P + vi_mat*morphCell{kk}.time;
-                        % clamp to image
-                        Pmm(Pmm(:,1)>sz(1),1)=sz(1);
-                        Pmm(Pmm(:,1)<1,1)=1;
-                        Pmm(Pmm(:,2)>sz(2),2)=sz(2);
-                        Pmm(Pmm(:,2)<1,2)=1;
+                        % didn't clamp to image
+                        % out of bound index has no impact on morphDist 
                         
                         md = md + morphDist(Pmm, morphCell{kk}.ctl, flowCap(kk));
                     end

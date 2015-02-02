@@ -6,7 +6,7 @@ disp('Program Starts...');
 
 % data parameters
 sq=220;
-numFrame=72;
+numFrame=32;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
