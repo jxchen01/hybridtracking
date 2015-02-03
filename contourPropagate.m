@@ -58,8 +58,8 @@ for i=1:1:numel(Ps)
             end
         else
             [mf,midx]=max(cellFuture(:,3));
-            %P = cellMorphing(P, cellEachFrame{cellFuture(midx,1)}{cellFuture(midx,2)}.ctl,...
-            %    mf, cellFuture(midx,1)-1);
+            P = cellMorphing(P, cellEachFrame{cellFuture(midx,1)}{cellFuture(midx,2)}.ctl,...
+                mf, cellFuture(midx,1)-1);
             clear mf midx
         end
         
