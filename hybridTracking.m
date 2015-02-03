@@ -5,8 +5,8 @@ clc
 disp('Program Starts...');
 
 % data parameters
-sq=220;
-numFrame=32;
+sq=100;
+numFrame=25;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
@@ -78,6 +78,22 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellBlock, matBlock, Options);
     
+%%%% code used for inspection %%%%     
+%     tmp1=zeros(xdim,ydim);
+%     tmp2=zeros(xdim,ydim);
+%     for i=1:1:numel(cellSemiGlobal{1})
+%         tmp1(cellSemiGlobal{1}{i}.seg>0)=i;
+%     end
+%     for i=1:1:numel(cellSemiGlobal{2})
+%         tmp2(cellSemiGlobal{2}{i}.seg>0)=i;
+%     end
+%     figure, imshow(tmp1,cMap)
+%     figure, imshow(tmp2,cMap)
+%     for i=1:1:numel(cellSemiGlobal{1})
+%         disp([i,cellSemiGlobal{1}{i}.child]);
+%     end
+%     
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % extract:
     %   (1) confirmed segmentation; 
     %   (2) confirmed entering cell; 

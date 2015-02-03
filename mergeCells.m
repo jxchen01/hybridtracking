@@ -34,8 +34,8 @@ function P=combineTwoCells(c1,c2)
     h(2,1)=norm(c1(end,:)-c2(1,:));
     h(2,2)=norm(c1(end,:)-c2(end,:));
     
-    [m1, t1]=max(h);
-    [~, t2]=max(m1);
+    [m1, t1]=min(h);
+    [~, t2]=min(m1);
     t1=t1(t2);
     
     if(t1==1)
