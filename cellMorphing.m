@@ -63,13 +63,13 @@ else
     error('bad optimization');
 end
 
-pts=(P1(src_idx(1),:)+P2(tar_idx(1),:))./double(ftime);
+pts=P1(src_idx(1),:)+(P2(tar_idx(1),:)-P1(src_idx(1),:))./double(ftime);
 for i=2:1:numMatch-1
     if(sign(tar_idx(i)-tar_idx(i-1))==flag && sign(tar_idx(end)-tar_idx(i))==flag)
-        pts=cat(1,pts,(P1(src_idx(i),:)+P2(tar_idx(i),:))./double(ftime));
+        pts=cat(1,pts,P1(src_idx(i),:)+(P2(tar_idx(i),:)-P1(src_idx(i),:))./double(ftime));
     end
 end
-pts=cat(1,pts,(P1(src_idx(end),:)+P2(tar_idx(end),:))./double(ftime));
+pts=cat(1,pts,P1(src_idx(end),:)+(P2(tar_idx(end),:)-P1(src_idx(end),:))./double(ftime));
 pts=round(pts);
 
 sz=max([P1(:);P2(:)])+1;

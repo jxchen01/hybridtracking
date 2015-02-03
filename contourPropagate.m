@@ -16,14 +16,10 @@ for i=1:1:numel(Ps)
     t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
     P0=P;
     
-    shrinkRate = Options.ShrinkPixelNum;
-    if(LastLength<=2*shrinkRate+3)
-        if(isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
-            skipIdx = cat(1,skipIdx,i);
-            continue;
-        else
-            shrinkRate=max([1,floor(LastLength*0.35)]);
-        end
+    
+    if(LastLength<=Options.leavingLength && isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
+        skipIdx = cat(1,skipIdx,i);
+        continue;
     end
     
     if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
@@ -44,17 +40,21 @@ for i=1:1:numel(Ps)
         cf=Ps{i}.cumFlow;
         for kk=1:1:numel(cid)
             if(abs(cid(kk) - round(cid(kk)))<1e-8)
-                cellNext=cat(2,cellNext,cid(kk));
+                cellNext=cat(1,cellNext,[cid(kk),cf(kk)]);
             else
                 cellFuture = cat(1,cellFuture,[floor(cid(kk)), uint16((cid(kk) - floor(cid(kk)))*1000), cf(kk)]);
             end
         end
         
         if(~isempty(cellNext))
-            if(numel(cellNext)==1)
-                P=cellEachFrame{2}{cellNext}.ctl;
+            if(size(cellNext,1)==1)
+                if(cellNext(1,2)<Options.bodyRatio*cellEachFrame{2}{cellNext(1,1)}.length)
+                    P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1);
+                else
+                    P=cellEachFrame{2}{cellNext(1,1)}.ctl;
+                end
             else
-                P=mergeCells(cellEachFrame{2}(cellNext));
+                P=mergeCells(cellEachFrame{2}(cellNext(:,1)));
             end
         else
             [mf,midx]=max(cellFuture(:,3));
@@ -69,9 +69,13 @@ for i=1:1:numel(Ps)
     %%%%%%
     % Note: P has been updated
     %%%%%%
-    
     % Calculate distance between points
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
+    
+    shrinkRate = Options.ShrinkPixelNum;
+    if(dis(end)<2*shrinkRate+5)
+        shrinkRate=max([1,floor(LastLength*0.35)]);
+    end
 
     % Resample to make uniform points
     K=zeros(nPoints,2);

@@ -30,10 +30,12 @@ Options.Verbose=true;
 Options.Iterations=30;
 Options.nPoints=20;
 Options.ShrinkPixelNum = 12;
-Options.lengthCanSkip=7;
 Options.repelThresh=8;
 Options.Alpha=0.4;
 Options.Beta=0.2;
+
+Options.lengthCanSkip=7;
+Options.leavingLength=20;
 
 Options.maxNormMove=3;
 Options.maxTangMove=20;

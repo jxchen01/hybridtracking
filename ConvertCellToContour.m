@@ -39,9 +39,6 @@ for i=1:1:numel(cFrame);
             BMap = BMap | cFrame{i}.seg;
         end       
     end
-%     if(numel(newCellFrame)==82)
-%         keyboard;
-%     end
 end
 
 idxList = setdiff(1:1:numel(pFrame), propagateIdx);

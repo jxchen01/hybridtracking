@@ -58,6 +58,14 @@ S=SnakeInternalForceMatrix2D(Options.nPoints,Options.Alpha,Options.Beta,Options.
 % Make an uniform sampled contour description
 P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
 
+%%%%% code for inspection %%%%%%%%%
+% tmp=zeros(size(I));
+% for i=1:1:numel(P)
+%     tmp(P{i}.region>0)=i;
+% end
+% figure, imshow(tmp+1, rand(200,3))
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 P=cellInfoUpdate(P,I);
 if(Options.Verbose)
     figure(2), imshow(I), hold on; myHandle=drawContours(P,0,[],0);
@@ -78,12 +86,8 @@ Fext(:,:,2)=-Fy*2*20^2;
 Fext=GVFOptimizeImageForces2D(Fext, 0.1, 5, 1.0);
 
 for i=1:Options.Iterations    
-    %P=SnakeMoveIteration2D(S,P,Fext,Options.Gamma,Options.Kappa,Options.Delta,thickness,targetLength);
-    P=SnakeRegionUpdate(I,S,P,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
-    
-    %if(mod(i,5)==0)
-        P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
-    %end
+    P=SnakeRegionUpdate(I,S,P,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);  
+    P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
     P = cellInfoUpdate(P,I);
     
     % Show current contour

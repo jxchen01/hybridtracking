@@ -92,7 +92,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
 %     for i=1:1:numel(cellSemiGlobal{1})
 %         disp([i,cellSemiGlobal{1}{i}.child]);
 %     end
-%     
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % extract:
     %   (1) confirmed segmentation; 
