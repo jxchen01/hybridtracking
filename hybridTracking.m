@@ -5,8 +5,8 @@ clc
 disp('Program Starts...');
 
 % data parameters
-sq=100;
-numFrame=25;
+sq=8;
+numFrame=51;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
@@ -87,8 +87,8 @@ for frameIdx = 2:1:numFrame-numFrameAhead
 %     for i=1:1:numel(cellSemiGlobal{2})
 %         tmp2(cellSemiGlobal{2}{i}.seg>0)=i;
 %     end
-%     figure, imshow(tmp1,cMap)
-%     figure, imshow(tmp2,cMap)
+%     figure, imshow(tmp1+1,cMap)
+%     figure, imshow(tmp2+1,cMap)
 %     for i=1:1:numel(cellSemiGlobal{1})
 %         disp([i,cellSemiGlobal{1}{i}.child]);
 %     end

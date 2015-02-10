@@ -74,7 +74,7 @@ for i=1:1:srcNum
     dmin=min([xmin,ymin]);
     
     if(dmin<BoundThreshold)
-        distMat(i,tarNum+1)=0.43*(dmin+lenA); % 30-degree
+        distMat(i,tarNum+1)=0.43*(dmin+lenA/4); % 30-degree
         srcCellList{i}.relaxOutCost=distMat(i,tarNum+1);
     else
         %distMat(i,tarNum+2)=0.75*0.5*srcCellList{i}.length;
@@ -94,7 +94,7 @@ for i=1:1:tarNum
     dmin=min([xmin,ymin]);
     
     if(dmin<BoundThreshold)
-        distMat(srcNum+1,i)=0.43*(dmin+lenB); % 30-degree
+        distMat(srcNum+1,i)=0.43*(dmin+lenB/4); % 30-degree
         tarCellList{i}.relaxInCost=distMat(srcNum+1,i);
     else
         %distMat(srcNum+2,i)=0.75*0.5*tarCellList{i}.length;

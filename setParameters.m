@@ -30,7 +30,7 @@ Options.Verbose=true;
 Options.Iterations=30;
 Options.nPoints=20;
 Options.ShrinkPixelNum = 12;
-Options.repelThresh=8;
+Options.repelThresh=6;
 Options.Alpha=0.4;
 Options.Beta=0.2;
 

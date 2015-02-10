@@ -3,21 +3,21 @@ function [newPs, skipIdx]=contourPropagate(cellEachFrame, idxList,I, Options)
 sz=size(I);
 nPoints = Options.nPoints;
 Ps=cellEachFrame{1}(idxList);
+Ps0=Ps;
 
 skipIdx=[];
 
 for i=1:1:numel(Ps)
-    
+  %  if(i==17), keyboard; end
     P=Ps{i}.ctl; % pixel-level accuracy (all connected grid points)
-    
     % keep record of last cell and decide shrinkrate
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
     LastLength = dis(end);
     t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
-    P0=P;
+    P0=P;   
     
-    
-    if(LastLength<=Options.leavingLength && isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
+    if(isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh) && isempty(Ps{i}.child))
+    %if(LastLength<=Options.leavingLength && isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
         skipIdx = cat(1,skipIdx,i);
         continue;
     end
@@ -28,6 +28,10 @@ for i=1:1:numel(Ps)
         LastLength = Ps{i}.dangerLength;
     end
     
+    shrinkRate = Options.ShrinkPixelNum + 12;
+    if(LastLength<2*shrinkRate+5)
+        shrinkRate=max([1,floor(LastLength*0.4)]);
+    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%% calculate the moving direction %%%%%%
@@ -46,14 +50,40 @@ for i=1:1:numel(Ps)
             end
         end
         
-        if(~isempty(cellNext))
-            if(size(cellNext,1)==1)
-                if(cellNext(1,2)<Options.bodyRatio*cellEachFrame{2}{cellNext(1,1)}.length)
-                    P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1);
+        % apply different methods to do morphing in different cases
+        if(~isempty(cellNext)) 
+            % do morphing directly with the cells in the next frame
+            if(size(cellNext,1)==1)  
+                if(numel(cellEachFrame{2}{cellNext(1,1)}.parent)==1)
+                    % 1-to-1 matching
+                    if(cellNext(1,2)<Options.bodyRatio*cellEachFrame{2}{cellNext(1,1)}.length)
+                        % match to a larger one
+                        P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1);
+                    else
+                        % match to a smaller one or of similar size
+                        P=cellEachFrame{2}{cellNext(1,1)}.ctl;
+                    end  
                 else
-                    P=cellEachFrame{2}{cellNext(1,1)}.ctl;
+                    % N-to-1 matching
+                    pList=cellEachFrame{2}{cellNext(1,1)}.parent;
+                    pnum=numel(pList);
+                    pidx=zeros(1,pnum);
+                    pflag=0;
+                    for kk=1:1:pnum
+                        a=find(idxList==pList(kk));
+                        if(~isempty(a))
+                            pidx(kk)=a;
+                            if(a==i)
+                                pflag=kk;
+                            end
+                        else
+                            error('error in propagating');
+                        end
+                    end
+                    P=multiMorphing(Ps0(pidx),cellEachFrame{2}{cellNext(1,1)},pflag);
                 end
             else
+                % 1-to-N matching
                 P=mergeCells(cellEachFrame{2}(cellNext(:,1)));
             end
         else
@@ -64,23 +94,36 @@ for i=1:1:numel(Ps)
         end
         
         clear cellNext cellFuture cf kk
+        
+        % Calculate distance between points
+        dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
+        
+        shrinkRate = Options.ShrinkPixelNum;
+        if(dis(end)<2*shrinkRate+5)
+            shrinkRate=max([1,floor(dis(end)*0.35)]);
+        end
     end
     
     %%%%%%
     % Note: P has been updated
     %%%%%%
-    % Calculate distance between points
-    dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
-    
-    shrinkRate = Options.ShrinkPixelNum;
-    if(dis(end)<2*shrinkRate+5)
-        shrinkRate=max([1,floor(LastLength*0.35)]);
-    end
 
     % Resample to make uniform points
     K=zeros(nPoints,2);
-    K(:,1) = interp1(dis,P(:,1),linspace(shrinkRate,dis(end)-shrinkRate,nPoints));
-    K(:,2) = interp1(dis,P(:,2),linspace(shrinkRate,dis(end)-shrinkRate,nPoints));
+    
+    if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
+        % determine which side is closer to boundary
+        if(distToBoundary(P(1,1),P(1,2),sz(1),sz(2)) < distToBoundary(P(end,1),P(end,2),sz(1),sz(2)))
+            K(:,1) = interp1(dis,P(:,1),linspace(0,dis(end)-shrinkRate,nPoints));
+            K(:,2) = interp1(dis,P(:,2),linspace(0,dis(end)-shrinkRate,nPoints));
+        else
+            K(:,1) = interp1(dis,P(:,1),linspace(shrinkRate,dis(end),nPoints));
+            K(:,2) = interp1(dis,P(:,2),linspace(shrinkRate,dis(end),nPoints));
+        end
+    else
+        K(:,1) = interp1(dis,P(:,1),linspace(shrinkRate,dis(end)-shrinkRate,nPoints));
+        K(:,2) = interp1(dis,P(:,2),linspace(shrinkRate,dis(end)-shrinkRate,nPoints));       
+    end  
     
     % Clamp contour to boundary
     K(:,1)=min(max(K(:,1),1),sz(1));
@@ -119,5 +162,16 @@ if(~isempty(skipIdx))
     end
 else
     newPs = Ps;
+end
+
+end
+
+
+
+function dist = distToBoundary(px,py,xdim,ydim)
+    hx=min([px,xdim-px]);
+    hy=min([py,ydim-py]);
+    
+    dist = min([hx,hy]);
 end
 

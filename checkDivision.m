@@ -13,8 +13,8 @@ for i=1:1:numel(Ps)
     y = smooth(x,t,0.2,'loess');
 
     [vmin,pos]=min(y);
-    %if(pos>0.4*len && pos<0.6*len && (max(t))/vmin>2.25)
-    if(pos>0.4*len && pos<0.6*len && (max(t)) - vmin> 0.085)
+    if(pos>0.4*len && pos<0.6*len && (max(t))/vmin>2.25)
+    %if(pos>0.4*len && pos<0.6*len && (max(t)) - vmin> 0.085)
         divisionIDX = cat(2,divisionIDX,i);
     end
             

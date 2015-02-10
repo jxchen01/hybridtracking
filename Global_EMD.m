@@ -192,9 +192,14 @@ for i=1:1:numFlowEdge
     if(xval(i)>0.1)       
         tmpHead=flowInfo{i}.head;
         tmpTail=flowInfo{i}.tail;          
-        if(tmpHead(1)~=0 && tmpTail(1)~=numFrame+1)         
-            if(xval(i)>bodyRatio*(cellFrame{tmpHead(1)}{tmpHead(2)}.length-cellFrame{tmpHead(1)}{tmpHead(2)}.outflow) || ...
-                    xval(i)>bodyRatio*(cellFrame{tmpTail(1)}{tmpTail(2)}.length-cellFrame{tmpTail(1)}{tmpTail(2)}.inflow))
+        if(tmpHead(1)~=0 && tmpTail(1)~=numFrame+1)   
+            check1= xval(i)>bodyRatio*(cellFrame{tmpHead(1)}{tmpHead(2)}.length...
+                -cellFrame{tmpHead(1)}{tmpHead(2)}.outflow);
+            check2= xval(i)>bodyRatio*(cellFrame{tmpTail(1)}{tmpTail(2)}.length-...
+                cellFrame{tmpTail(1)}{tmpTail(2)}.inflow);
+            check3= xval(i)>0.25*cellFrame{tmpHead(1)}{tmpHead(2)}.length;
+            check4= xval(i)>0.25*cellFrame{tmpTail(1)}{tmpTail(2)}.length;
+            if( (check1||check2) && (check3||check4) )
        
                 tmp=cellFrame{tmpHead(1)}{tmpHead(2)}.child;
                 tmp2=cellFrame{tmpTail(1)}{tmpTail(2)}.parent;

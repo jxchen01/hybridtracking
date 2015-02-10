@@ -86,7 +86,7 @@ Fext(:,:,2)=-Fy*2*20^2;
 Fext=GVFOptimizeImageForces2D(Fext, 0.1, 5, 1.0);
 
 for i=1:Options.Iterations    
-    P=SnakeRegionUpdate(I,S,P,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);  
+    P=SnakeRegionUpdate(I,S,P,Fext,BMap,BMap0,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);  
     P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
     P = cellInfoUpdate(P,I);
     

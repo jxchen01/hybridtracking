@@ -1,4 +1,4 @@
-function Ps=SnakeRegionUpdate(I,B,Ps,Fedge,BMap,gamma,kappa,delta,repelThresh)
+function Ps=SnakeRegionUpdate(I,B,Ps,Fedge,BMap, BMap0,gamma,kappa,delta,repelThresh)
 % This function will calculate one iteration of ribbon Snake movement
 %
 % P=SnakeRegionUpdate(I,B,P,BMap,gamma,kappa)
@@ -27,6 +27,7 @@ numContour=numel(Ps);
 nPoints=size(Ps{1}.pts,1);
 
 [RepelForce,ContourImage] = fetchInfo(Ps,BMap,repelThresh);
+ContourImage = ContourImage | BMap0; 
 
 % get the exterior intensity
 exteriorIntensity = mean(I(~ContourImage));
