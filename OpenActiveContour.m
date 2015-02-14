@@ -149,7 +149,7 @@ if(~isempty(divisionIDX))
     end
     
     for i=1:Options.Iterations
-        Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
+        Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,BMap1,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
         Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
         Pnew = cellInfoUpdate(Pnew,I);
         if(Options.Verbose)

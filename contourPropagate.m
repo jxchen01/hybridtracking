@@ -80,7 +80,7 @@ for i=1:1:numel(Ps)
                             error('error in propagating');
                         end
                     end
-                    P=multiMorphing(Ps0(pidx),cellEachFrame{2}{cellNext(1,1)},pflag);
+                    P=multiMorphing(Ps0(pidx),cellEachFrame{2}{cellNext(1,1)},pflag,sz);
                 end
             else
                 % 1-to-N matching

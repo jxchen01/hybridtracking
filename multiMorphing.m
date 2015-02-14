@@ -1,4 +1,4 @@
-function P = multiMorphing(Ps,Pt,sid)
+function P = multiMorphing(Ps,Pt,sid,sz)
 
 P1=[]; targetLength=0;
 kpoint=[];
@@ -68,38 +68,33 @@ end
 flowMat=zeros(len1,len2);
 flowMat(xval>0.5)=1;
 
-src_idx = find(any(flowMat>1e-5,2));
-
-numMatch = targetLength;
-tar_idx = zeros(1,numMatch);
+tar_idx = [];
 
 for i=head_idx:1:tail_idx
-    tar_idx(i-head_idx+1) = find(flowMat(src_idx(i),:)>1e-5);
-end
-
-if(tar_idx(1)>tar_idx(end))
-    flag=-1;
-elseif(tar_idx(1)<tar_idx(end))
-    flag=1;
-else
-    error('bad optimization');
-end
-
-% remove invalid match (not in order)
-pts=P2(tar_idx(1),:);
-for i=2:1:numMatch-1
-    if(sign(tar_idx(i)-tar_idx(i-1))==flag && sign(tar_idx(end)-tar_idx(i))==flag)
-        pts=cat(1,pts,P2(tar_idx(i),:));
+    tt=find(flowMat(i,:)>1e-5);
+    if(~isempty(tt))
+        tar_idx=cat(1,tar_idx,tt);
     end
 end
-pts=cat(1,pts,P2(tar_idx(end),:));
-pts=round(pts);
 
-sz=max([P1(:);P2(:)])+1;
-ctl=zeros(sz,sz);
+
+[m1,midx1] = LIS(tar_idx(1:1:end));
+[m2,midx2] = LIS(tar_idx(end:-1:1));
+
+if(m1<m2)
+    pts=P2(midx2,:);
+else
+    pts=P2(midx1,:);
+end
+
+pts=round(pts);
+pts(pts(:,1)<1,:)=1; pts(pts(:,1)>sz(1),:)=sz(1);
+pts(pts(:,2)<1,:)=1; pts(pts(:,2)>sz(2),:)=sz(2);
+
+ctl=zeros(sz);
 for pid=1:1:size(pts,1)-1
     [px,py]=bresenham(pts(pid,1),pts(pid,2),pts(pid+1,1),pts(pid+1,2));
-    pidx = sub2ind([sz,sz],px,py);
+    pidx = sub2ind(sz,px,py);
     ctl(pidx)=1;
 end
 ctl = bwmorph(ctl,'thin',Inf);

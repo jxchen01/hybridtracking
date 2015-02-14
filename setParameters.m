@@ -26,7 +26,8 @@ end
 Options.candiRadiusK = cK;
 
 % Contour Evolution Parameters
-Options.Verbose=true;
+Options.Verbose=false;
+
 Options.Iterations=30;
 Options.nPoints=20;
 Options.ShrinkPixelNum = 12;

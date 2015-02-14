@@ -38,7 +38,7 @@ dx(1)=xt(2)-xt(1);dx(end)=xt(end)-xt(end-1);
 dy(1)=yt(2)-yt(1);dy(end)=yt(end)-yt(end-1);
 
 % Normals of contourpoints
-l=sqrt(dx.^2+dy.^2);
+l=sqrt(dx.^2+dy.^2)+1e-5;
 nx = -dy./l; 
 ny =  dx./l;
 N(:,1)=nx; N(:,2)=ny;
