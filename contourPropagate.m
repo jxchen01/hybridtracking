@@ -24,7 +24,7 @@ for i=1:1:numel(Ps)
     
     if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
         LastLength = -1 * LastLength;
-    elseif(isfield(Ps{i},'dangerLength'))
+    elseif(isfield(Ps{i},'dangerLength') && Ps{i}.dangerLength>1e-5)
         LastLength = Ps{i}.dangerLength;
     end
     

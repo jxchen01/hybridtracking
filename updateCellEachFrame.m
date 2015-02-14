@@ -82,9 +82,14 @@ for i=1:1:numProp
         'relaxOutCost',0,'seg',im, 'id',cellEachFrame{1}{pid}.id,'cumFlow',[]);
     
     % when the length decreases too much, fire alwarm by setting dangerLength
-    if(Ps{i}.length<max([0.8*Ps{i}.targetLength, Ps{i}.targetLength-4])...
-            && ~isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh))
-        tmp.dangerLength=Ps{i}.targetLength;
+    if(Ps{i}.length<max([0.8*Ps{i}.targetLength, Ps{i}.targetLength-4]))
+        if(~isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh))
+            tmp.dangerLength=Ps{i}.targetLength;
+        end
+    else
+        if(isfield(Ps{i},'dangerLength') && Ps{i}.dangerLength>1e-5)
+            Ps{i}.dangerLength=0;
+        end
     end
         
     % insert the new cell
@@ -187,7 +192,7 @@ for i=1:1:numel(oldCellFrame)
     end
     if(oldCellFrame{i}.case<0) % re-appearing cell
         tmpSeg= oldCellFrame{i}.seg;
-        if(nnz(tmpSeg & evolvedMap)>3)
+        if(nnz(tmpSeg & evolvedMap)>0.5)
             continue;
         end
     end

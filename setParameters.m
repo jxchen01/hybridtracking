@@ -35,7 +35,7 @@ Options.repelThresh=6;
 Options.Alpha=0.4;
 Options.Beta=0.2;
 
-Options.lengthCanSkip=7;
+Options.lengthCanSkip=10; % half contour length
 Options.leavingLength=20;
 
 Options.maxNormMove=3;

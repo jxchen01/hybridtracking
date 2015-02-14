@@ -1,4 +1,4 @@
-function flag=confirmEntry(cellEachFrame, idx, checkType)
+function flag=confirmEntry(cellEachFrame, idx, LengthSkip,checkType)
 
 %%%% check type:
 % 1. entering from boundary
@@ -6,7 +6,7 @@ function flag=confirmEntry(cellEachFrame, idx, checkType)
 frameIdxBase=1;
 flag=false;
 
-if(cellEachFrame{1}{idx}.length<5)
+if(cellEachFrame{1}{idx}.length<LengthSkip)
     return
 end
 
@@ -45,6 +45,11 @@ if(checkType==1)
     end
 
 elseif(checkType==2)
+    
+    if(cellEachFrame{1}{idx}.length<LengthSkip*2.5)
+        return
+    end
+
     if(numel(cid)~=1)
         return;
     end

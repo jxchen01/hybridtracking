@@ -56,10 +56,6 @@ I2=mat2gray(imread([fpath,'sq',num2str(sq),'/raw/img0102',RawType]));
 for frameIdx = 2:1:numFrame-numFrameAhead
     disp(['processing frame: ',num2str(frameIdx)]);
     
-    if(frameIdx==14)
-        keyboard;
-    end
-    
     % add the new Frame, index = frameIdx + numFrameAhead
     indNew = frameIdx + numFrameAhead;
     S=load([fpath,'sq',num2str(sq),'/seg_data/seg0',num2str(100+indNew),'.mat']);
@@ -78,7 +74,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     % build correspondence within a period of time
     cellSemiGlobal = Global_EMD(cellBlock, matBlock, Options);
     
-%%%% code used for inspection %%%%     
+% %%%% code used for inspection %%%%     
 %     tmp1=zeros(xdim,ydim);
 %     tmp2=zeros(xdim,ydim);
 %     for i=1:1:numel(cellSemiGlobal{1})
@@ -92,7 +88,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
 %     for i=1:1:numel(cellSemiGlobal{1})
 %         disp([i,cellSemiGlobal{1}{i}.child]);
 %     end
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % extract:
     %   (1) confirmed segmentation; 

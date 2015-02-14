@@ -78,7 +78,7 @@ for i=1:1:srcNum
         srcCellList{i}.relaxOutCost=distMat(i,tarNum+1);
     else
         %distMat(i,tarNum+2)=0.75*0.5*srcCellList{i}.length;
-        distMat(i,tarNum+2)=0.8*25; % assume length=50
+        distMat(i,tarNum+2)=0.8*40; % assume length=80
         srcCellList{i}.relaxOutCost=-1*distMat(i,tarNum+2);
     end
 end
@@ -98,7 +98,7 @@ for i=1:1:tarNum
         tarCellList{i}.relaxInCost=distMat(srcNum+1,i);
     else
         %distMat(srcNum+2,i)=0.75*0.5*tarCellList{i}.length;
-        distMat(srcNum+2,i)=0.8*25; %assume length=50
+        distMat(srcNum+2,i)=0.8*40; %assume length=80
         tarCellList{i}.relaxInCost=-1*distMat(srcNum+2,i);
     end
 end
