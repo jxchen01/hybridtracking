@@ -5,17 +5,19 @@ clc
 disp('Program Starts...');
 
 % data parameters
-sq=5;
-numFrame=73;
+sq=11;
+numFrame=400;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
+%parpool('local',2);
+
+Options=setParameters(sq);
 
 % load manual segmentation and parameters
 BW = im2bw(imread([fpath,'sq',num2str(sq),'/manual.png']));
 
 [xdim,ydim]=size(BW);
-Options=setParameters(xdim,ydim);
 
 numFrameAhead = Options.numFrameAhead;
 cMap = rand(1000,3).*0.9 + 0.1; % displaying the trackig results
@@ -133,3 +135,6 @@ for frameIdx = 2:1:numFrame-numFrameAhead
 end
 
 clear I1 I2 I3 
+
+poolobj = gcp('nocreate');
+delete(poolobj);

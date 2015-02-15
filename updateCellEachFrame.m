@@ -66,6 +66,15 @@ for i=1:1:numProp
         ctl(pidx)=1;
     end
     ctl = bwmorph(ctl,'thin',Inf);
+    
+    bp_test=bwmorph(ctl,'branchpoint');
+    if(any(bp_test(:)))
+        se0=strel('disk',3,0);
+        cr= imdilate(ctl,se0);
+        ctl=bwmorph(cr,'thin',Inf);
+        clear cr se0
+    end
+    clear bp_test
     ctlList=sortOneCellPixel(ctl);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

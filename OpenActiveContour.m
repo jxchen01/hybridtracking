@@ -74,19 +74,19 @@ end
 % prepare the barrier map
 BMap = processBMap(BMap0,Options.repelThresh);
 
-% Transform the Image into an External Energy Image
-Eext = ExternalForceImage2D(I,0.04, 2, 0.01 ,6);
- 
-% Make the external force (flow) field.
-Fx=ImageDerivatives2D(Eext,20,'x');
-Fy=ImageDerivatives2D(Eext,20,'y');
-Fext(:,:,1)=-Fx*2*20^2;
-Fext(:,:,2)=-Fy*2*20^2;
-
-Fext=GVFOptimizeImageForces2D(Fext, 0.1, 5, 1.0);
+% % Transform the Image into an External Energy Image
+% Eext = ExternalForceImage2D(I,0.04, 2, 0.01 ,6);
+%  
+% % Make the external force (flow) field.
+% Fx=ImageDerivatives2D(Eext,20,'x');
+% Fy=ImageDerivatives2D(Eext,20,'y');
+% Fext(:,:,1)=-Fx*2*20^2;
+% Fext(:,:,2)=-Fy*2*20^2;
+% 
+% Fext=GVFOptimizeImageForces2D(Fext, 0.1, 5, 1.0);
 
 for i=1:Options.Iterations    
-    P=SnakeRegionUpdate(I,S,P,Fext,BMap,BMap0,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);  
+    P=SnakeRegionUpdate(I,S,P,BMap,BMap0,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);  
     P=InterpolateContourPoints2D(P,Options.nPoints,size(I));
     P = cellInfoUpdate(P,I);
     
@@ -149,7 +149,7 @@ if(~isempty(divisionIDX))
     end
     
     for i=1:Options.Iterations
-        Pnew=SnakeRegionUpdate(I,S,Pnew,Fext,BMap,BMap1,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
+        Pnew=SnakeRegionUpdate(I,S,Pnew,BMap,BMap1,Options.Gamma,Options.Kappa,Options.Delta,Options.repelThresh);
         Pnew=InterpolateContourPoints2D(Pnew,Options.nPoints,size(I));
         Pnew = cellInfoUpdate(Pnew,I);
         if(Options.Verbose)

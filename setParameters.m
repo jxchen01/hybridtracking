@@ -1,4 +1,4 @@
-function Options=setParameters(xdim,ydim)
+function Options=setParameters(sq)
 
 Options=struct();
 
@@ -31,15 +31,22 @@ Options.Verbose=false;
 Options.Iterations=30;
 Options.nPoints=20;
 Options.ShrinkPixelNum = 12;
-Options.repelThresh=6;
+
 Options.Alpha=0.4;
 Options.Beta=0.2;
 
-Options.lengthCanSkip=10; % half contour length
+if(sq<10)
+    Options.lengthCanSkip=10; % half contour length
+    Options.repelThresh=6;
+elseif(sq>10)
+    Options.lengthCanSkip=15; % half contour length
+    Options.repelThresh=8;
+end
+
 Options.leavingLength=20;
 
-Options.maxNormMove=3;
-Options.maxTangMove=20;
+%Options.maxNormMove=3;
+%Options.maxTangMove=20;
 
 % Prior Information Parameters
 Options.minBranch = 7; %%% used for pruning centerlines
