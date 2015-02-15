@@ -176,7 +176,7 @@ parfor ci=1:numContour
     %ss(end,:) = ss(end,:) + ff(2).*nn(2,:);
     
     for hi=1:1:2
-        if(ff(hi)<0 && sf>0 && rp_head(hi)>0 && cv_head(hi)<0 && fe_head(hi)>0)
+        if(ff(hi)<0 && sf>0 && rp_head(hi)>0 && cv_head(hi)<0)
             % rp and cv were not negativated. so negative means expansion
             ff(hi)=0; sf=0;
         end
