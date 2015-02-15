@@ -12,6 +12,11 @@ for i=1:1:numProp
     % check whether the contour should be removed
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    % Case 0: If it is too short, remove with no doubt
+    if(Ps{i}.length< 0.5*Options.lengthCanSkip)
+        continue;
+    end
+    
     % Case 1: If it is shorter than a threshold, close to boundary,
     %         also becoming shorter than its length in the last frame
     if((Ps{i}.length < Options.lengthCanSkip)  ...
