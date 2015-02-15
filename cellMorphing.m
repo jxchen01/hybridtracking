@@ -1,4 +1,4 @@
-function P=cellMorphing(P1,P2,flowCap,ftime)
+function P=cellMorphing(P1,P2,flowCap,ftime,sz)
 
 if(size(P1,2)~=2 || size(P2,2)~=2)
     disp('error in dimenstion');
@@ -46,37 +46,48 @@ end
 flowMat=zeros(len1,len2);
 flowMat(xval>0)=1;
 
-src_idx = find(any(flowMat>1e-5,2));
+src_idx = [];
+tar_idx = [];
 
-% remove invalid match (not in order)
-numMatch = numel(src_idx);
-tar_idx = zeros(1,numMatch);
-for i=1:1:numMatch
-    tar_idx(i) = find(flowMat(src_idx(i),:)>1e-5);
-end
-
-if(tar_idx(1)>tar_idx(end))
-    flag=-1;
-elseif(tar_idx(1)<tar_idx(end))
-    flag=1;
-else
-    error('bad optimization');
-end
-
-pts=P1(src_idx(1),:)+(P2(tar_idx(1),:)-P1(src_idx(1),:))./double(ftime);
-for i=2:1:numMatch-1
-    if(sign(tar_idx(i)-tar_idx(i-1))==flag && sign(tar_idx(end)-tar_idx(i))==flag)
-        pts=cat(1,pts,P1(src_idx(i),:)+(P2(tar_idx(i),:)-P1(src_idx(i),:))./double(ftime));
+for i=1:1:len1
+    tt=find(flowMat(i,:)>1e-5);
+    if(~isempty(tt))
+        tar_idx=cat(1,tar_idx,tt);
+        src_idx=cat(1,src_idx,i);
     end
 end
-pts=cat(1,pts,P1(src_idx(end),:)+(P2(tar_idx(end),:)-P1(src_idx(end),:))./double(ftime));
-pts=round(pts);
 
-sz=max([P1(:);P2(:)])+1;
-ctl=zeros(sz,sz);
+[m1,midx1] = LIS(tar_idx(1:1:end));
+[m2,midx2] = LIS(tar_idx(end:-1:1));
+
+if(m1<m2)
+    mb=m2; midxb=midx2;
+else
+    mb=m1; midxb=midx1;
+end
+
+if(ftime==1)
+    pts=P2(midxb,:);
+else
+    pts=zeros(mb,2);
+    for i=1:1:mb
+        sid = find(tar_idx==midxb(i));
+        if(isempty(sid))
+            disp('error in EMD morphing');
+            keyboard;
+        end
+        pts(i,:) = P1(src_idx(sid),:) + (P2(midxb(i),:) - P1(src_idx(sid),:))./double(ftime);
+    end
+end
+
+pts=round(pts);
+pts(pts(:,1)<1,:)=1; pts(pts(:,1)>sz(1),:)=sz(1);
+pts(pts(:,2)<1,:)=1; pts(pts(:,2)>sz(2),:)=sz(2);
+
+ctl=zeros(sz);
 for pid=1:1:size(pts,1)-1
     [px,py]=bresenham(pts(pid,1),pts(pid,2),pts(pid+1,1),pts(pid+1,2));
-    pidx = sub2ind([sz,sz],px,py);
+    pidx = sub2ind(sz,px,py);
     ctl(pidx)=1;
 end
 ctl = bwmorph(ctl,'thin',Inf);

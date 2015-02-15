@@ -29,8 +29,8 @@ for i=1:1:numel(Ps)
     end
     
     shrinkRate = Options.ShrinkPixelNum + 12;
-    if(LastLength<2*shrinkRate+5)
-        shrinkRate=max([1,floor(LastLength*0.4)]);
+    if(dis(end)<2*shrinkRate+5)
+        shrinkRate=max([1,floor(dis(end)*0.4)]);
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +58,7 @@ for i=1:1:numel(Ps)
                     % 1-to-1 matching
                     if(cellNext(1,2)<Options.bodyRatio*cellEachFrame{2}{cellNext(1,1)}.length)
                         % match to a larger one
-                        P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1);
+                        P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1,sz);
                     else
                         % match to a smaller one or of similar size
                         P=cellEachFrame{2}{cellNext(1,1)}.ctl;
@@ -89,7 +89,7 @@ for i=1:1:numel(Ps)
         else
             [mf,midx]=max(cellFuture(:,3));
             P = cellMorphing(P, cellEachFrame{cellFuture(midx,1)}{cellFuture(midx,2)}.ctl,...
-                mf, cellFuture(midx,1)-1);
+                mf, cellFuture(midx,1)-1, sz);
             clear mf midx
         end
         

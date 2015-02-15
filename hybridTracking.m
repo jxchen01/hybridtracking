@@ -5,8 +5,8 @@ clc
 disp('Program Starts...');
 
 % data parameters
-sq=1;
-numFrame=75;
+sq=5;
+numFrame=73;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
