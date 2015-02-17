@@ -9,7 +9,7 @@ labelImg=epImg+im;
 cellNum = nnz(epImg)/2;
 if(mod(nnz(epImg),2)==1)
     disp('error in number of endpoints');
-    keyboard
+    error('error in extracting manual seg');
 end
 clear epImg
 
@@ -45,7 +45,7 @@ while(~isempty(ep))
                         oep=1;
                     else
                         disp('more then two endpoints are removed in one iteration');
-                        keyboard
+                        error('error in extracting manual seg');
                     end
                 end
                 
@@ -61,7 +61,7 @@ while(~isempty(ep))
     
     if(oep==0)
         disp('only one endpoint is removed in this iteration');
-        keyboard
+        error('error in extracting manual seg');
     end
     
     %%%%% remove short cells %%%%

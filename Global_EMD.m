@@ -185,7 +185,7 @@ clear tmpEdge tmpIdx tmpTail
 
 if(exitflag~=1)
     disp(output.message);
-    keyboard
+    error('error in optimization');
 end
 
 for i=1:1:numFlowEdge
