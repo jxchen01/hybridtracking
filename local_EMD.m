@@ -6,9 +6,7 @@ minValidFlow=3;
 BoundThreshold = algOptions.BoundThresh;
 candiRadius=algOptions.candiRadius;
 bodyRatio=algOptions.bodyRatio;
-%options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
-%    'off','LargeScale', 'off', 'Simplex', 'on');
-options = optimset('Display', 'off', 'Diagnostics','off');
+options = optimset('Display', 'off');
 
 % initialization
 srcNum = length(srcCellList);
@@ -206,14 +204,14 @@ for i=1:1:sNum
         %%%%% Do local matching conservatively %%%%%%%
         %%%%% i.e. only keep very good matching %%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        if(distMat(i,indInTar)>3)
+        if(distMat(i,indInTar)>algOptions.minDij)
             continue;
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % treat positve flow as a matching, only if
         % the flow amount if greater than the length
-        % of either src or tar
+        % of either src or tar (i.e. in conservative manner)
         if(tf>bodyRatio*srcCellList{i}.length || tf>bodyRatio*tarCellList{indInTar}.length)
             matchingMat(i,indInTar)=tf;
         end
@@ -229,24 +227,15 @@ for i=1:1:sNum
     if(numel(new_child)==0)
         continue;
     end
-    if(sid==21), keyboard, end
+    
     srcCellList{sid}.child=new_child;
     for j=1:1:numel(new_child)
-        tmpFlow = min([tarCellList{new_child(j)}.length-tarCellList{new_child(j)}.inflow,srcCellList{sid}.length-srcCellList{sid}.outflow]);
-        srcCellList{sid}.outflow = srcCellList{sid}.outflow + tmpFlow;
-        srcCellList{sid}.cumFlow = cat(2,srcCellList{sid}.cumFlow, tmpFlow);
+        %tmpFlow = min([tarCellList{new_child(j)}.length-tarCellList{new_child(j)}.inflow,srcCellList{sid}.length-srcCellList{sid}.outflow]);
+        srcCellList{sid}.outflow = srcCellList{sid}.outflow + matchingMat(sid,new_child(j));
+        srcCellList{sid}.cumFlow = cat(2,srcCellList{sid}.cumFlow, matchingMat(sid,new_child(j)));
         
-%         if(isempty(tarCellList{new_child(j)}.parent))
-%             tarCellList{new_child(j)}.parent = sid;
-%             tarCellList{new_child(j)}.inflow = tmpFlow;
-%         else
-            tarCellList{new_child(j)}.parent=...
-                cat(2,tarCellList{new_child(j)}.parent,sid);
-            tarCellList{new_child(j)}.inflow = tarCellList{new_child(j)}.inflow + tmpFlow;
-%         end      
+        tarCellList{new_child(j)}.parent=cat(2,tarCellList{new_child(j)}.parent,sid);
+        tarCellList{new_child(j)}.inflow = tarCellList{new_child(j)}.inflow + matchingMat(sid,new_child(j));      
     end
         
 end
-
-
-

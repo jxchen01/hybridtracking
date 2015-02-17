@@ -34,7 +34,7 @@ exteriorIntensity = mean(I(~ContourImage));
 
 % apply forces on each cell and update point list
 parfor ci=1:numContour
-%     if(ci==15)  
+%     if(ci==3)  
 %         keyboard;
 %     end
     % retrieve info of current cell
@@ -97,7 +97,7 @@ parfor ci=1:numContour
     
     % the stretching force
     if(targetLength<0)
-        phi=0.001;
+        phi=0.01;
     else
         if(len<0.85*targetLength)
             phi=1;

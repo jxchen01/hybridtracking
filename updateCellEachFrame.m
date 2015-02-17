@@ -12,23 +12,23 @@ for i=1:1:numProp
     % check whether the contour should be removed
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    % Case 0: If it is too short, remove with no doubt
-    if(Ps{i}.length< 0.5*Options.lengthCanSkip)
+    % Case 1: If it is too short, remove with no doubt
+    if(Ps{i}.length< Options.lengthCanSkip)
         continue;
     end
     
-    % Case 1: If it is shorter than a threshold, close to boundary,
-    %         also becoming shorter than its length in the last frame
-    if((Ps{i}.length < Options.lengthCanSkip)  ...
-            && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
-            && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
-        continue;
-    end
+%     % Case 1: If it is shorter than a threshold, close to boundary,
+%     %         also becoming shorter than its length in the last frame
+%     if((Ps{i}.length < Options.lengthCanSkip)  ...
+%             && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
+%             && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
+%         continue;
+%     end
     
     % Case 2: If the interior intensity differ too much from that 
     %         in the last frame. (Evolution Error)
-    if(Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
-    %if(CellDist(Ps{i})>2.5 || Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
+    %if(Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.5)
+    if(Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.5)
         disp('check evolution');
         continue;
     end
@@ -77,6 +77,10 @@ for i=1:1:numProp
     clear bp_test
     ctlList=sortOneCellPixel(ctl);
     
+    if(size(ctlList,1)<Options.pixelCanSkip)
+        continue;
+    end
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % update information
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,7 +96,7 @@ for i=1:1:numProp
     
     % build the new cell
     tmp=struct('length',size(ctlList,1),'ctl',ctlList,'child',[],...
-        'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxinCost',0,...
+        'parent',pid,'candi',[],'inflow',mf,'outflow',0,'relaxInCost',0,...
         'relaxOutCost',0,'seg',im, 'id',cellEachFrame{1}{pid}.id,'cumFlow',[]);
     
     % when the length decreases too much, fire alwarm by setting dangerLength
@@ -127,15 +131,13 @@ if(~isempty(divisionIDX))
         
         % Case 1: If it is shorter than a threshold, close to boundary,
         %         also becoming shorter than its length in the last frame
-        if((Ps{i}.length < Options.lengthCanSkip)  ...
-                && isCloseToBoundary(Ps{i}.pts,sz(1),sz(2),Options.BoundThresh)...
-                && Ps{i}.length < 0.5+abs(Ps{i}.targetLength))
+        if((Ps{i}.length < 0.75*Options.lengthCanSkip))
             continue;
         end
         
         % Case 2: If the interior intensity differ too much from that
         %         in the last frame. (Evolution Error)
-        if(CellDist(Ps{i})>2.5 || Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.7)
+        if(Ps{i}.intensity/(Ps{i}.LastFrameIntensity+0.000001)< 0.5)
             disp('check evolution');
             continue;
         end
@@ -160,6 +162,8 @@ if(~isempty(divisionIDX))
         se= strel('disk',double(max([1,round(Ps{i}.thickness)])),0);
         im = im | imdilate(tmpHead,se);
         
+        evolvedMap = evolvedMap | im;
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % convert contour control points to centerline
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -171,7 +175,21 @@ if(~isempty(divisionIDX))
             ctl(pidx)=1;
         end
         ctl = bwmorph(ctl,'thin',Inf);
+        
+        bp_test=bwmorph(ctl,'branchpoint');
+        if(any(bp_test(:)))
+            se0=strel('disk',3,0);
+            cr= imdilate(ctl,se0);
+            ctl=bwmorph(cr,'thin',Inf);
+            clear cr se0
+        end
+        clear bp_test
+        
         ctlList=sortOneCellPixel(ctl);
+        
+        if(size(ctlList,1)<0.75*Options.pixelCanSkip)
+            continue;
+        end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % update information
@@ -204,7 +222,7 @@ for i=1:1:numel(oldCellFrame)
     if(~isfield(oldCellFrame{i},'case'))
         keyboard;
     end
-    if(oldCellFrame{i}.case<0) % re-appearing cell
+    if(oldCellFrame{i}.case==-1 || oldCellFrame{i}.case==2) % re-appearing cell
         tmpSeg= oldCellFrame{i}.seg;
         if(nnz(tmpSeg & evolvedMap)>0.5)
             continue;

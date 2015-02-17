@@ -10,28 +10,22 @@ skipIdx=[];
 for i=1:1:numel(Ps)
 
     P=Ps{i}.ctl; % pixel-level accuracy (all connected grid points)
-    % keep record of last cell and decide shrinkrate
+    
+    % propagate target length 
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
     LastLength = dis(end);
-    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
-    P0=P;   
-    
-    if(isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh) && isempty(Ps{i}.child))
-    %if(LastLength<=Options.leavingLength && isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
-        skipIdx = cat(1,skipIdx,i);
-        continue;
+    if(isfield(Ps{i},'dangerLength') && Ps{i}.dangerLength>1e-5)
+        LastLength = Ps{i}.dangerLength;
     end
     
     if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
         LastLength = -1 * LastLength;
-    elseif(isfield(Ps{i},'dangerLength') && Ps{i}.dangerLength>1e-5)
-        LastLength = Ps{i}.dangerLength;
     end
     
-    shrinkRate = Options.ShrinkPixelNum + 12;
-    if(dis(end)<2*shrinkRate+5)
-        shrinkRate=max([1,floor(dis(end)*0.4)]);
-    end
+    % propagate thickness
+    t = cellThickness(P,Ps{i}.seg,sz(1),sz(2));
+    
+    P0=P;   
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%% calculate the moving direction %%%%%%
@@ -67,20 +61,23 @@ for i=1:1:numel(Ps)
                     % N-to-1 matching
                     pList=cellEachFrame{2}{cellNext(1,1)}.parent;
                     pnum=numel(pList);
-                    pidx=zeros(1,pnum);
+                    pidx=[];
                     pflag=0;
                     for kk=1:1:pnum
                         a=find(idxList==pList(kk));
                         if(~isempty(a))
-                            pidx(kk)=a;
+                            pidx=cat(2,pidx,a);
                             if(a==i)
-                                pflag=kk;
+                                pflag=numel(pidx);
                             end
-                        else
-                            error('error in propagating');
                         end
                     end
-                    P=multiMorphing(Ps0(pidx),cellEachFrame{2}{cellNext(1,1)},pflag,sz);
+                    if(numel(pidx)>1)
+                        P=multiMorphing(Ps0(pidx),cellEachFrame{2}{cellNext(1,1)},pflag,sz);
+                    else % some of the parents may have been confirmed
+                         % then, they should not be included for morphing
+                        P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1,sz);
+                    end
                 end
             else
                 % 1-to-N matching
@@ -95,22 +92,52 @@ for i=1:1:numel(Ps)
         
         clear cellNext cellFuture cf kk
         
+        %%%%% remove, if the initial position has too few points %%%%%
+        %%%% this could be caused by small amount of flow between cells %%%
+        if(size(P,1)<5)
+            skipIdx = cat(1,skipIdx,i);
+            continue;
+        end
+        
         % Calculate distance between points
         dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
         
+        % determine shrinkRate
         shrinkRate = Options.ShrinkPixelNum;
-        if(dis(end)<2*shrinkRate+5)
-            shrinkRate=max([1,floor(dis(end)*0.35)]);
+        shrinkLengthRation = 0.3;
+    else   
+        %%%% remove leaving cells %%%%%%
+        if(isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
+            %if(LastLength<=Options.leavingLength && isCloseToBoundary(P,sz(1),sz(2),Options.BoundThresh))
+            skipIdx = cat(1,skipIdx,i);
+            continue;
         end
+        
+        % determine shrinkRate
+        shrinkRate = Options.ShrinkPixelNum + 12;
+        shrinkLengthRation = 0.4;
     end
     
     %%%%%%
-    % Note: P has been updated
+    % Note: P and dis has been updated
     %%%%%%
-
+    
+    %%%%% remove short cells %%%%%%
+    if(dis(end)<Options.lengthCanSkip)
+        skipIdx = cat(1,skipIdx,i);
+        continue;
+    end
+    
+    if(dis(end)<2*shrinkRate+5)
+        shrinkRate=max([1,floor(dis(end)*shrinkLengthRation)]);
+    end
+    
     % Resample to make uniform points
     K=zeros(nPoints,2);
     
+    %%%%%%%%%%%%%%
+    % if close to boundary, shrink one side; otherwise, shrink both sides %
+    %%%%%%%%%%%%%%
     if(isCloseToBoundary(P,sz(1),sz(2), Options.BoundThresh))
         % determine which side is closer to boundary
         if(distToBoundary(P(1,1),P(1,2),sz(1),sz(2)) < distToBoundary(P(end,1),P(end,2),sz(1),sz(2)))

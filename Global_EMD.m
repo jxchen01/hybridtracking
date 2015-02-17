@@ -15,7 +15,7 @@ end
 
 %options = optimset('Algorithm','simplex','Display', 'off', 'Diagnostics',...
 %    'off','LargeScale', 'off', 'Simplex', 'on');
-options = optimset('Display', 'off', 'Diagnostics','off');
+options = optimset('Display', 'off');
 
 tarMat=zeros(dimx,dimy,searchDepth-1);
 flowInfo = cell(500);

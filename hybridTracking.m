@@ -5,8 +5,8 @@ clc
 disp('Program Starts...');
 
 % data parameters
-sq=22;
-numFrame=360;
+sq=8;
+numFrame=51;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
@@ -62,6 +62,7 @@ for frameIdx = 2:1:numFrame-numFrameAhead
     indNew = frameIdx + numFrameAhead;
     S=load([fpath,'sq',num2str(sq),'/seg_data/seg0',num2str(100+indNew),'.mat']);
     matBlock{numFrameAhead+2} = S.matFrame;
+    
     [cellBlock{numFrameAhead+1},cellBlock{numFrameAhead+2}]=...
         local_EMD(cellBlock{numFrameAhead+1},S.cellFrame,...
         matBlock{numFrameAhead+1}.Mat,matBlock{numFrameAhead+2}.Mat,Options);

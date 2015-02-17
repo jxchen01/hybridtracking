@@ -19,8 +19,6 @@ cellList=cell(1,cellNum);
 cMat=zeros(xdim,ydim);
 
 while(~isempty(ep))
-    currentCellNum=currentCellNum+1;
-    
     % extract a new end point
     [xt,yt]=ind2sub([xdim ydim],ep(1));
     labelImg(xt,yt)=0;
@@ -66,30 +64,27 @@ while(~isempty(ep))
         keyboard
     end
     
-    pts=zeros(pixNum,2);
-    pts(:,:)=tmpPixInd(1:pixNum,:);
+    %%%%% remove short cells %%%%
+    if(pixNum<Options.pixelCanSkip)
+        ep=find(labelImg==2);
+        continue;
+    end
     
+    currentCellNum=currentCellNum+1;   
+    pts=zeros(pixNum,2);
+    pts(:,:)=tmpPixInd(1:pixNum,:);    
     seg_region = (bwLabel==bwLabel(pts(1,1),pts(1,2)));
-    %thickness = cellThickness(tmpPixInd(1:1:pixNum,:),...
-    %    seg_region,xdim,ydim);
     
     cellList{currentCellNum}=struct('length',pixNum,'ctl',pts,'child',[],...
-        'parent',[],'candi',[],'inflow',0,'outflow',0,'relaxinCost',0,...
+        'parent',[],'candi',[],'inflow',0,'outflow',0,'relaxInCost',0,...
         'relaxOutCost',0,'seg',seg_region,'id',currentCellNum,'cumFlow',[]);
     
     if(~isCloseToBoundary(pts,xdim,ydim, Options.BoundThresh))
         cellList{currentCellNum}.copyLength = pixNum;
     end
 
-    for ii=1:1:pixNum
-        cMat(pts(ii,1),pts(ii,2))=currentCellNum;
-    end
+    pts_idx = sub2ind([xdim,ydim],pts(:,1),pts(:,2));
+    cMat(pts_idx)=currentCellNum;
     
     ep=find(labelImg==2); 
-end
-
-if(currentCellNum~=cellNum)
-    disp('error in the number of detected cells');
-    disp([currentCellNum,cellNum]);
-    keyboard
 end
