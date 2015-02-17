@@ -8,7 +8,7 @@ Ps0=Ps;
 skipIdx=[];
 
 for i=1:1:numel(Ps)
-  %  if(i==17), keyboard; end
+
     P=Ps{i}.ctl; % pixel-level accuracy (all connected grid points)
     % keep record of last cell and decide shrinkrate
     dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];

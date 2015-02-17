@@ -16,10 +16,11 @@ th=sqrt((txA-hxB)*(txA-hxB)+(tyA-hyB)*(tyA-hyB));
 apDist=min([hh,tt,ht,th]);
 
 if(apDist<distThresh)
-    tB=zeros(lenB,2);
-    for i=1:lenB
-        tB(i,:)=cellB(lenB-i+1,:);
-    end
+    tB=flipud(cellB);
+%     tB=zeros(lenB,2);
+%     for i=1:lenB
+%         tB(i,:)=cellB(lenB-i+1,:);
+%     end
     
     if(lenA<lenB)
         if(debug)

@@ -88,10 +88,10 @@ elseif(ftime>1.5)
     end
     
     [MaxD1, best_p1]=cellAlign(A, LA, B, LB);
-    [MaxD2, best_p2]=cellAlign(A, LA, fliplr(B), LB);
+    [MaxD2, best_p2]=cellAlign(A, LA, flipud(B), LB);
     
     if(MaxD1>MaxD2)
-        B=fliplr(B);
+        B=flipud(B);
         k=best_p2;
     else
         k=best_p1;

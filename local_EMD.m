@@ -229,7 +229,7 @@ for i=1:1:sNum
     if(numel(new_child)==0)
         continue;
     end
-    
+    if(sid==21), keyboard, end
     srcCellList{sid}.child=new_child;
     for j=1:1:numel(new_child)
         tmpFlow = min([tarCellList{new_child(j)}.length-tarCellList{new_child(j)}.inflow,srcCellList{sid}.length-srcCellList{sid}.outflow]);
