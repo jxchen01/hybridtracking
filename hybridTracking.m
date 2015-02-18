@@ -9,13 +9,15 @@ sq=8;
 numFrame=51;
 RawType='.png';
 fpath = '/Users/JianxuChen/Dropbox/Private/miccai2015/';
+%fpath='C:\Users\jchen16\Dropbox\Private\miccai2015\';
 % '/Users/JianxuChen/Desktop/Research/Myxo_Bacteria/MICCAI2015/data/'
 %parpool('local',2);
+dh='/';
 
 Options=setParameters(sq);
 
 % load manual segmentation and parameters
-BW = im2bw(imread([fpath,'sq',num2str(sq),'/manual.png']));
+BW = im2bw(imread([fpath,'sq',num2str(sq),dh,'manual.png']));
 
 [xdim,ydim]=size(BW);
 

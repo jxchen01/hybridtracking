@@ -59,9 +59,9 @@ if(ftime==1)
     [m2,midx2] = LIS(tar_idx(end:-1:1));
     
     if(m1<m2)
-        mb=m2; midxb=midx2;
+        midxb=midx2;
     else
-        mb=m1; midxb=midx1;
+        midxb=midx1;
     end
     
     pts=P2(midxb,:);

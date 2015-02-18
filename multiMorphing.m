@@ -52,6 +52,7 @@ end
 
 beq=[flowCap;2.0];
 Aeq=cat(1,ones(1,N),zeros(1,N)); 
+% at least one point match to head/tail
 idx=sub2ind([len1,len2],kpoint,ones(numel(kpoint),1));
 Aeq(2,idx)=1;
 idx=sub2ind([len1,len2],kpoint,repmat(len2,numel(kpoint),1));
@@ -77,6 +78,10 @@ for i=head_idx:1:tail_idx
     end
 end
 
+if(isempty(tar_idx))
+    P=[];
+    return;
+end
 
 [m1,midx1] = LIS(tar_idx(1:1:end));
 [m2,midx2] = LIS(tar_idx(end:-1:1));

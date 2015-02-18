@@ -74,6 +74,10 @@ for i=1:1:numel(Ps)
                     end
                     if(numel(pidx)>1)
                         P=multiMorphing(Ps0(pidx),cellEachFrame{2}{cellNext(1,1)},pflag,sz);
+                        if(isempty(P))
+                            skipIdx = cat(1,skipIdx,i);
+                            continue;
+                        end
                     else % some of the parents may have been confirmed
                          % then, they should not be included for morphing
                         P=cellMorphing(P, cellEachFrame{2}{cellNext(1,1)}.ctl,cellNext(1,2), 1,sz);
