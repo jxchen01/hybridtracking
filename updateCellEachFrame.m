@@ -13,7 +13,7 @@ for i=1:1:numProp
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Case 1: If it is too short, remove with no doubt
-    if(Ps{i}.length< Options.lengthCanSkip)
+    if(Ps{i}.length< Options.lengthCanSkip || Ps{i}.length<0.5*Ps{i}.targetLength)
         continue;
     end
     
