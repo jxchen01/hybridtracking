@@ -9,62 +9,84 @@ len1=size(P1,1);
 len2=size(P2,1);
 
 if(ftime==1)
-    options = optimoptions('intlinprog','Display', 'off');
-    distMat = zeros(len1,len2);
-    for i=1:1:len1
-        for j=1:1:len2
-            distMat(i,j)=norm(P1(i,:)-P2(j,:));
-        end
-    end
-
-    f=distMat(:);
-    N=numel(f);
-    M=len1+len2;
-    A=zeros(M,N);
-    b=ones(M,1);
-
-    for i=1:1:len1
-        idx = sub2ind([len1,len2],repmat(i,1,len2),1:1:len2);
-        A(i,idx)=1;
-    end
     
-    for i=1:1:len2
-        idx = sub2ind([len1,len2],1:1:len1,repmat(i,1,len1));
-        A(i+len1, idx)=1;
-    end
-    
-    [xval,fval,exitflag,~] = intlinprog(f,1:length(f),A,b,ones(1,N),...
-        double(flowCap),zeros(1,N),ones(1,N),options);
-
-    if(exitflag~=1)
-        disp(output.message);
-        error('error in cellMorhing optimization');
-    end
-
-    flowMat=zeros(len1,len2);
-    flowMat(xval>0.5)=1;
-    
-    src_idx = [];
-    tar_idx = [];
-    
-    for i=1:1:len1
-        tt=find(flowMat(i,:)>1e-5);
-        if(~isempty(tt))
-            tar_idx=cat(1,tar_idx,tt);
-            src_idx=cat(1,src_idx,i);
-        end
-    end
-    
-    [m1,midx1] = LIS(tar_idx(1:1:end));
-    [m2,midx2] = LIS(tar_idx(end:-1:1));
-    
-    if(m1<m2)
-        midxb=midx2;
+    if(len1<=len2)
+        LA=len1; LB=len2;
+        A=P1; B=P2;
     else
-        midxb=midx1;
+        LA=len2; LB=len1;
+        A=P2; B=P1;
     end
     
-    pts=P2(midxb,:);
+    [MaxD1, best_p1]=cellAlign(A, LA, B, LB);
+    [MaxD2, best_p2]=cellAlign(A, LA, flipud(B), LB);
+    
+    if(MaxD1>MaxD2)
+        B=flipud(B);
+        k=best_p2;
+    else
+        k=best_p1;
+    end
+    
+    pts=zeros(LA,2);
+    pts(:,:) = B((1+k):(LA+k),:);
+
+%     options = optimoptions('intlinprog','Display', 'off');
+%     distMat = zeros(len1,len2);
+%     for i=1:1:len1
+%         for j=1:1:len2
+%             distMat(i,j)=norm(P1(i,:)-P2(j,:));
+%         end
+%     end
+% 
+%     f=distMat(:);
+%     N=numel(f);
+%     M=len1+len2;
+%     A=zeros(M,N);
+%     b=ones(M,1);
+% 
+%     for i=1:1:len1
+%         idx = sub2ind([len1,len2],repmat(i,1,len2),1:1:len2);
+%         A(i,idx)=1;
+%     end
+%     
+%     for i=1:1:len2
+%         idx = sub2ind([len1,len2],1:1:len1,repmat(i,1,len1));
+%         A(i+len1, idx)=1;
+%     end
+%     
+%     [xval,fval,exitflag,~] = intlinprog(f,1:length(f),A,b,ones(1,N),...
+%         double(flowCap),zeros(1,N),ones(1,N),options);
+% 
+%     if(exitflag~=1)
+%         disp(output.message);
+%         error('error in cellMorhing optimization');
+%     end
+% 
+%     flowMat=zeros(len1,len2);
+%     flowMat(xval>0.5)=1;
+%     
+%     src_idx = [];
+%     tar_idx = [];
+%     
+%     for i=1:1:len1
+%         tt=find(flowMat(i,:)>1e-5);
+%         if(~isempty(tt))
+%             tar_idx=cat(1,tar_idx,tt);
+%             src_idx=cat(1,src_idx,i);
+%         end
+%     end
+%     
+%     [m1,midx1] = LIS(tar_idx(1:1:end));
+%     [m2,midx2] = LIS(tar_idx(end:-1:1));
+%     
+%     if(m1<m2)
+%         midxb=midx2;
+%     else
+%         midxb=midx1;
+%     end
+%     
+%     pts=P2(midxb,:);
 
     %     pts=zeros(mb,2);
     %     for i=1:1:mb
